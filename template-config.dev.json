@@ -1,0 +1,18 @@
+{
+  "Parameters": {
+    "Environment": "development",
+    "VpcId": "vpc-045abd836d5330b2c",
+    "PublicSubnets": "subnet-078af2f244ca4be34,subnet-0dbddf51cce66aad9,subnet-0ae9f32f4eca4d9d7",
+    "PrivateSubnetCidrBlockA": "172.31.96.0/20",
+    "PrivateSubnetCidrBlockB": "172.31.112.0/20",
+    "PrivateSubnetCidrBlockC": "172.31.128.0/20",
+    "CidrIp": "172.31.0.0/16",
+    "DBName": "wxtmBridgeDev",
+    "DBInstanceClass": "db.t3.micro",
+    "DBAllocatedStorage": 10,
+
+    "HostedZoneId": "Z0314953QDJ0JC4ZC8KD",
+    "CertificateArn": "none",
+    "Domain": "none"
+  }
+}

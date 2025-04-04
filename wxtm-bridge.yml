@@ -1,0 +1,202 @@
+Transform: AWS::Serverless-2016-10-31
+AWSTemplateFormatVersion: "2010-09-09"
+
+Parameters:
+  Environment:
+    Type: String
+  HostedZoneId:
+    Type: String
+  Domain:
+    Type: String
+  CertificateArn:
+    Type: String
+  DbHost:
+    Type: String
+  DbSecret:
+    Type: String
+  DbName:
+    Type: String
+  AccessSecurityGroupId:
+    Type: String
+    Description: Security group to assing to lambdas
+  Subnets:
+    Type: String
+    Description: Subnets to run lambdas in
+  KmsKeyId:
+    Type: String
+  ChainId:
+    Type: Number
+  BlockchainNetworkUrl:
+    Type: String
+  TokenGateFilesStorageDistributionId:
+    Type: String
+  SesSender:
+    Type: String
+  NorthCapitalSecret:
+    Type: String
+  NorthCapitalUrl:
+    Type: String
+  FilesBucketName:
+    Type: String
+  DocumentsBucketName:
+    Type: String
+  OfferingDocumentsBucketName:
+    Type: String
+  AccreditationBucketName:
+    Type: String
+  EvmStateMachineArn:
+    Type: String
+  PostKYCSuccessStateMachineArn:
+    Type: String
+  AccreddSecrets:
+    Type: String
+  AccreditationSheduleValue:
+    Type: Number
+  AccreditationSheduleUnit:
+    Type: String
+  IssuerPortalUrl:
+    Type: String
+  LoginPortalUrl:
+    Type: String
+  AccountsEventPatternSource:
+    Type: String
+  CreateAccountsEventPatternDetail:
+    Type: String
+  ResetAccountsEventPatternDetail:
+    Type: String
+  AddToGroupEventPatternDetail:
+    Type: String
+  RemoveFromGroupEventPatternDetail:
+    Type: String
+  AddUserToManyGroupsEventPatternDetail:
+    Type: String
+  CreateOrUpdateOfferingEventPatternDetail:
+    Type: String
+  SnsOriginationNumber:
+    Type: String
+  CreateWalletEventPatternDetail:
+    Type: String
+  AddToInvestorsGroupEventPatternDetail:
+    Type: String
+  ClientCreatedEventPatternDetail:
+    Type: String
+  SendTemplatedEmailEventPatternDetail:
+    Type: String
+  SyncAccountsEventPatternDetail:
+    Type: String
+  UpdateOfferingGroupsPatternDetails:
+    Type: String
+  SyncInvestorsTablePatternDetails:
+    Type: String
+  OfferingGroupDbName:
+    Type: String
+  AddToSubOfferingInvestorsGroupEventPatternDetail:
+    Type: String
+  RemoveFromSubOfferingInvestorsGroupEventPatternDetail:
+    Type: String
+  AddToCapitalCallInvestorsGroupEventPatternDetail:
+    Type: String
+  RemoveFromCapitalCallInvestorsGroupEventPatternDetail:
+    Type: String
+  CancelInvestorInvitationEventPatternDetails:
+    Type: String
+  InvestorJoinsOfferingEventPatternDetail:
+    Type: String
+  SwaggerPassword:
+    Type: String
+
+Globals:
+  Function:
+    Runtime: nodejs18.x
+    Timeout: 60
+    MemorySize: 512
+    VpcConfig:
+      SecurityGroupIds:
+        - !Ref AccessSecurityGroupId
+      SubnetIds: !Split [",", !Ref Subnets]
+    Environment:
+      Variables:
+        ENVIRONMENT: !Ref Environment
+        DATABASE_HOST: !Ref DbHost
+        DATABASE_PORT: "5432"
+        DATABASE_USERNAME: !Join
+          - ""
+          - - "{{resolve:secretsmanager:"
+            - !Ref DbSecret
+            - ":SecretString:username}}"
+        DATABASE_PASSWORD: !Join
+          - ""
+          - - "{{resolve:secretsmanager:"
+            - !Ref DbSecret
+            - ":SecretString:password}}"
+        DATABASE_NAME: !Ref DbName
+
+Resources:
+  Api:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: !Ref Environment
+      MethodSettings:
+        - ResourcePath: "/*"
+          HttpMethod: "*"
+      Domain:
+        CertificateArn: !Ref CertificateArn
+        DomainName: !Sub api.${Domain}
+        Route53:
+          HostedZoneId: !Ref HostedZoneId
+
+  NestJsApp:
+    Type: AWS::Serverless::Function
+    Properties:
+      Tracing: Active
+      CodeUri: ./tokengate-backend.zip
+      Handler: dist/src/lambdaEntrypoint.app
+      AutoPublishAlias: wxtm-backend
+
+      Events:
+        NestJs:
+          Type: Api
+          Properties:
+            RestApiId: !Ref Api
+            Path: /{whatever+}
+            Method: ANY
+      Policies:
+        - Statement:
+            - Action:
+                - secretsmanager:GetSecretValue
+              Effect: Allow
+              Resource:
+                - !Sub arn:aws:secretsmanager:*:*:secret:/acquire/${Environment}/*
+            - Effect: "Allow"
+              Action:
+                - events:PutEvents
+              Resource: "*"
+
+      DeploymentPreference:
+        Type: AllAtOnce
+        Hooks:
+          PreTraffic: !Ref RunMigrations
+
+  RunMigrations:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "CodeDeployHook_tokenGateServicesRunMigrations_${Environment}"
+      CodeUri: ./tokengate-backend.zip
+      Handler: dist/src/lambdaEntrypoint.runMigrations
+      Policies:
+        Statement:
+          - Effect: "Allow"
+            Action:
+              - codedeploy:*
+            Resource: !Sub "arn:aws:codedeploy:${AWS::Region}:${AWS::AccountId}:deploymentgroup:${ServerlessDeploymentApplication}/*"
+          - Effect: "Allow"
+            Action:
+              - secretsmanager:GetSecretValue
+            Resource: !Sub "arn:aws:secretsmanager:*:*:secret:/acquire/${Environment}/*"
+          - Effect: "Allow"
+            Action:
+              - events:PutEvents
+            Resource: "*"
+
+      DeploymentPreference:
+        Enabled: false

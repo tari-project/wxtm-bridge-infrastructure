@@ -1,0 +1,23 @@
+#!/bin/bash
+
+USER=ubuntu
+KEY=${1-~/.ssh/id_rsa.pub}
+STACK_NAME=acquire-dev-Bastion-1AJ2OMK6RB307
+STAGING_STACK_NAME=acquire-staging-Bastion-XEPTZOB2IHEE
+DEMO_STACK_NAME=acquire-demo-Bastion-40YV2ITPXC2A
+PROD_STACK_NAME=acquire-production-Bastion-1NSC2LSVVHOTS
+
+DESCRIPTION=$(aws ec2 describe-instances --filters "Name=tag:aws:cloudformation:stack-name,Values=$STACK_NAME" "Name=instance-state-name,Values=running")
+
+INSTANCE_ID=$(echo $DESCRIPTION | jq -r ".Reservations[0].Instances[0].InstanceId")
+if [ "$INSTANCE_ID" = "null" ]; then
+   echo "Can't find running instance for stack $STACK_NAME. Bailing"
+   exit 1
+fi;
+
+AVAILABILITY_ZONE=$(echo $DESCRIPTION | jq -r ".Reservations[0].Instances[0].Placement.AvailabilityZone")
+PUBLIC_IP=$(echo $DESCRIPTION | jq -r ".Reservations[0].Instances[0].PublicIpAddress")
+
+aws ec2-instance-connect send-ssh-public-key --instance-id $INSTANCE_ID --availability-zone $AVAILABILITY_ZONE --instance-os-user $USER --ssh-public-key file://$KEY
+
+ssh $USER@$PUBLIC_IP

@@ -1,0 +1,105 @@
+#!/bin/bash
+
+USER=ubuntu
+ENV="$1"
+KEY=${2-~/.ssh/id_rsa.pub}
+
+if [[ "$ENV" == "prod" ]]; then 
+  SERVICE_NAME="$2"
+  KEY=${3-~/.ssh/id_rsa.pub}
+fi
+
+if [[ "$ENV" == "" ]]; then
+  ENV="dev"
+fi
+
+if [[ "$SERVICE_NAME" == "" ]]; then
+  SERVICE_NAME="tokengate"
+fi
+
+ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+if [[ "$ACCOUNT_ID" != "520461703993" ]] && [[ "$ENV" != "prod" ]]; then
+  echo "Logged in as a wrong account: $ACCOUNT_ID. Bailing"
+  exit 1
+fi
+
+if [[ "$ENV" == "prod" ]] && [[ "$ACCOUNT_ID" != "102506888067" ]]; then
+  echo "Logged in as a wrong account: $ACCOUNT_ID. Bailing"
+  exit 1
+fi
+
+case "$ENV" in
+  "dev")
+    STACK_NAME=acquire-dev-Bastion-1AJ2OMK6RB307
+    RDS_HOST=ar16l2oepp5ehpc.cf0qoueulfz9.us-east-1.rds.amazonaws.com
+    RDS_LOCAL_PORT=5436
+    ;;
+  "staging")
+    STACK_NAME=acquire-staging-Bastion-XEPTZOB2IHEE
+    RDS_HOST=acquire-staging-acquiredatabase-1vuzq4-rdspostgres-yrtl8nu2ih9g.cf0qoueulfz9.us-east-1.rds.amazonaws.com
+    RDS_LOCAL_PORT=5437
+    ;;
+  "demo")
+    STACK_NAME=acquire-demo-Bastion-40YV2ITPXC2A
+    RDS_HOST=acquire-demo-acquiredatabase-13e3lsv34-rdspostgres-t6fbbisxykyz.cf0qoueulfz9.us-east-1.rds.amazonaws.com
+    RDS_LOCAL_PORT=5438
+    ;;
+  "prod")
+    STACK_NAME=acquire-production-Bastion-1FQ8HA85R8QQ9
+    case "$SERVICE_NAME" in
+      "tokengate")
+        RDS_HOST=acquire-production-acquiredatabase-sk1-rdspostgres-csgagpffbrbv.ctficmhus2kh.us-east-1.rds.amazonaws.com
+        RDS_LOCAL_PORT=5470
+        ;;
+      "allocations")
+        RDS_HOST=allocations-service-prod-database-13i9-rdspostgres-vhrq5batufcc.ctficmhus2kh.us-east-1.rds.amazonaws.com
+        RDS_LOCAL_PORT=5471
+        ;;
+      "documents")
+        RDS_HOST=documents-service-prod-database-1h1xte-rdspostgres-3gjt1c6pkwrb.ctficmhus2kh.us-east-1.rds.amazonaws.com
+        RDS_LOCAL_PORT=5472
+        ;;
+      "messaging")
+        RDS_HOST=messaging-service-prod-database-76sah2-rdspostgres-depha3hi52mf.ctficmhus2kh.us-east-1.rds.amazonaws.com
+        RDS_LOCAL_PORT=5473
+        ;;
+      "offering-group")
+        RDS_HOST=offering-group-service-prod-database-1-rdspostgres-nlnd37ipyuny.ctficmhus2kh.us-east-1.rds.amazonaws.com
+        RDS_LOCAL_PORT=5474
+        ;;
+      "transactions")
+        RDS_HOST=transactions-service-prod-database-1tw-rdspostgres-v7jruiwp6aqv.ctficmhus2kh.us-east-1.rds.amazonaws.com
+        RDS_LOCAL_PORT=5475
+        ;;
+      "agent")
+        RDS_HOST=agent-service-prod-database-18d71fs2p8-rdspostgres-oefvsagalx64.ctficmhus2kh.us-east-1.rds.amazonaws.com
+        RDS_LOCAL_PORT=5476
+        ;;
+      "issuer-portal-data-tables")
+        RDS_HOST=issuer-portal-data-tables-service-prod-rdspostgres-lzm4ce5rphoj.ctficmhus2kh.us-east-1.rds.amazonaws.com
+        RDS_LOCAL_PORT=5477
+        ;;
+      "investor-portal-data-tables")
+        RDS_HOST=investor-portal-data-tables-service-pr-rdspostgres-ev4lira7wiig.ctficmhus2kh.us-east-1.rds.amazonaws.com
+        RDS_LOCAL_PORT=5478
+        ;;
+    esac
+    ;;
+esac
+
+echo "RDS_LOCAL_PORT: $RDS_LOCAL_PORT"
+
+DESCRIPTION=$(aws ec2 describe-instances --filters "Name=tag:aws:cloudformation:stack-name,Values=$STACK_NAME" "Name=instance-state-name,Values=running")
+
+INSTANCE_ID=$(echo $DESCRIPTION | jq -r ".Reservations[0].Instances[0].InstanceId")
+if [ "$INSTANCE_ID" = "null" ]; then
+   echo "Can't find running instance for stack $STACK_NAME. Bailing"
+   exit 1
+fi;
+
+AVAILABILITY_ZONE=$(echo $DESCRIPTION | jq -r ".Reservations[0].Instances[0].Placement.AvailabilityZone")
+PUBLIC_IP=$(echo $DESCRIPTION | jq -r ".Reservations[0].Instances[0].PublicIpAddress")
+
+aws ec2-instance-connect send-ssh-public-key --instance-id $INSTANCE_ID --availability-zone $AVAILABILITY_ZONE --instance-os-user $USER --ssh-public-key file://$KEY
+
+ssh -L "$RDS_LOCAL_PORT:$RDS_HOST:5432" "$USER@$PUBLIC_IP"

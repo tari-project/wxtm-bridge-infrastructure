@@ -1,0 +1,102 @@
+#!/bin/bash
+
+# ----- This script takes a file containing an array of JSON objects like this: -----
+# [
+#   {
+#       "investorAcceptanceId": number,
+#       "countersignAcceptanceId": number,
+#       "documentId": number,
+#       "documentOriginalFileName": string,
+#       "directoryPath": string,
+#       "investorUuid": string
+#   }
+# ]
+# And then: 
+# 1. Removes the file directoryPath/documentOriginalFileName from the S3 bucket
+# 3. Triggers the SQS message to generate a new document for the countersignAcceptanceId
+
+# ----- Steps to run the script: -----
+# 1. Comment-out sending doc-countersigned emails
+#   - apps/documents/src/generate-countersign-document/generate-countersign-document.service.ts
+#   - await this.emailNotificationsMicroserviceService.onDocumentCountersigned(
+# 2. export AWS_PROFILE=acquire-dev
+# 3. Run the query to get the acceptance details and save the result in a JSON file
+# 4. Remove the document records from the database
+# 5. Run this script with the JSON file path and environment as arguments
+#   The script should be run with the following command:
+#   ./scripts/regenerate-documents /path/to/json/file.json dev
+
+
+# ----- Query to get the acceptance details -----
+#  select
+#  	uda.id as "investorAcceptanceId",
+#  	countersign.id as "countersignAcceptanceId",
+#  	d.id as "documentId",
+#  	d."originalFileName" as "documentOriginalFileName",
+#  	dd."path" as "directoryPath",
+#  	u."externalUuid" as "investorUuid"
+#  	from "userofferingDocumentAcceptances" uda
+#  left join "userofferingDocumentAcceptances" countersign
+#  	on countersign."countersignId" = uda.id
+#  	and countersign."type" = 'COUNTERSIGN'::public."userofferingDocumentAcceptances_type_enum" 
+#  left join documents d
+#  	ON d."offeringDocumentAcceptanceId" = countersign.id
+#  left join "documentDirectories" dd
+#  	on dd.id = d."directoryId"
+#  left join "user" u
+#  	on u.id = uda."userId"
+#  where uda."type" = 'INVESTOR_ACCEPTANCE'
+#  	and uda."commitmentAmount" is not null and uda."commitmentAmount" != '0'
+#  	and d.id is not null
+#  	and countersign."generateSignatureStatus" = 'document-ready'
+#  	and countersign.status = 'SIGNED'::public."userofferingDocumentAcceptances_status_enum";
+
+# -----  Query to remove the document records from db -----
+# delete from documents where "id" in (documentId1, documentId2, ...);
+
+
+JSON_FILE=$1
+ENV=$2
+
+case "$ENV" in
+  "dev")
+    S3_BUCKET=s3://documents-storage.dev.acquireinvest.com-document-files
+    SQS_URL=https://sqs.us-east-1.amazonaws.com/520461703993/GenerateSignatureQueue-dev.fifo
+    ;;
+  "staging")
+    S3_BUCKET=s3://documents-storage.staging.acquireinvest.com-document-files
+    SQS_URL=https://sqs.us-east-1.amazonaws.com/520461703993/GenerateSignatureQueue-staging.fifo
+    ;;
+  "demo")
+    S3_BUCKET=s3://documents-storage.demo.acquireinvest.com-document-files
+    SQS_URL=https://sqs.us-east-1.amazonaws.com/520461703993/GenerateSignatureQueue-demo.fifo
+    ;;
+  "prod")
+    S3_BUCKET=s3://documents-storage.production.acquireinvest.com-document-files
+    SQS_URL=https://sqs.us-east-1.amazonaws.com/102506888067/GenerateSignatureQueue-prod.fifo
+    ;;
+esac
+
+# Read the JSON file and process each object
+jq -c '.[]' "$JSON_FILE" | while read -r input_json; do
+  investorAcceptanceId=$(echo $input_json | jq -r '.investorAcceptanceId')
+  countersignAcceptanceId=$(echo $input_json | jq -r '.countersignAcceptanceId')
+  documentId=$(echo $input_json | jq -r '.documentId')
+  documentOriginalFileName=$(echo $input_json | jq -r '.documentOriginalFileName')
+  directoryPath=$(echo $input_json | jq -r '.directoryPath')
+  investorUuid=$(echo $input_json | jq -r '.investorUuid')
+
+  echo "Processing document: $documentOriginalFileName"
+  echo "Removing file from S3 bucket: $S3_BUCKET/$directoryPath/$documentOriginalFileName"
+
+  # Remove the file from the S3 bucket
+  aws s3 rm "$S3_BUCKET/$directoryPath/$documentOriginalFileName"
+
+  echo "Triggering SQS message for countersignAcceptanceId: $countersignAcceptanceId"
+
+  # Trigger the SQS message to generate a new document
+  aws sqs send-message --queue-url "$SQS_URL" --message-body "{\"countersignId\": $countersignAcceptanceId}" --message-group-id create-signature-document
+
+  # wait for 3 seconds before processing the next document
+  sleep 3
+done

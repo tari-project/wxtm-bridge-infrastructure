@@ -1,0 +1,60 @@
+Transform: AWS::Serverless-2016-10-31
+Parameters:
+  Environment:
+    Type: String
+  VpcId:
+    Type: String
+  PublicSubnets:
+    Type: String
+  PrivateSubnetCidrBlockA:
+    Type: String
+  PrivateSubnetCidrBlockB:
+    Type: String
+  PrivateSubnetCidrBlockC:
+    Type: String
+  CidrIp:
+    Type: String
+  CertificateArn:
+    Type: String
+  HostedZoneId:
+    Type: String
+  Domain:
+    Type: String
+  DBName:
+    Type: String
+  DBInstanceClass:
+    Type: String
+  DBAllocatedStorage:
+    Type: Number
+
+Resources:
+  PrivateSubnets:
+    Type: AWS::Serverless::Application
+    Properties:
+      Location: ./private-subnets.yml
+      Parameters:
+        VpcId: !Ref VpcId
+        PublicSubnet: !Select [0, !Split [",", !Ref PublicSubnets]]
+        PrivateSubnetCidrBlockA: !Ref PrivateSubnetCidrBlockA
+        PrivateSubnetCidrBlockB: !Ref PrivateSubnetCidrBlockB
+        PrivateSubnetCidrBlockC: !Ref PrivateSubnetCidrBlockC
+        CidrIp: !Ref CidrIp
+
+  LambdaSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group in which Lambdas are executed
+      VpcId: !Ref VpcId
+
+  WXTMBridgeDatabase:
+    Type: AWS::Serverless::Application
+    Properties:
+      Location: ./postgres.yml
+      Parameters:
+        Environment: !Ref Environment
+        DBInstanceClass: !Ref DBInstanceClass
+        DBAllocatedStorage: !Ref DBAllocatedStorage
+        DBName: !Ref DBName
+        VpcId: !Ref VpcId
+        Subnets: !GetAtt PrivateSubnets.Outputs.PrivateSubnets
+        AccessSecurityGroupId: !Ref LambdaSecurityGroup

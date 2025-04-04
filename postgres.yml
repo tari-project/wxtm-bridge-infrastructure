@@ -1,0 +1,99 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+Parameters:
+  Environment:
+    Type: String
+  DBInstanceClass:
+    Type: String
+  DBAllocatedStorage:
+    Type: Number
+  DBStorageType:
+    Type: String
+    Default: "gp2"
+  DBName:
+    Type: String
+  VpcId:
+    Description: Id of created vpc
+    Type: AWS::EC2::VPC::Id
+  Subnets:
+    Type: String
+  AccessSecurityGroupId:
+    Type: String
+    Description: "Limit access to database to given security group"
+    Default: ""
+
+Resources:
+  PostgresSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: Postgres subnet
+      SubnetIds: !Split
+        - ","
+        - !Ref Subnets
+
+  RdsPostgres:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      DBName: !Ref DBName
+      AllocatedStorage: !Ref DBAllocatedStorage
+      DBInstanceClass: !Ref DBInstanceClass
+      StorageType: !Ref DBStorageType
+      DBSubnetGroupName: !Ref PostgresSubnetGroup
+      Engine: postgres
+      EngineVersion: "17.4"
+      MasterUsername: !Join
+        - ""
+        - - "{{resolve:secretsmanager:"
+          - !Ref MyRDSInstanceSecret
+          - ":SecretString:username}}"
+      MasterUserPassword: !Join
+        - ""
+        - - "{{resolve:secretsmanager:"
+          - !Ref MyRDSInstanceSecret
+          - ":SecretString:password}}"
+      VPCSecurityGroups:
+        - !Ref PostgresSecurityGroup
+      PubliclyAccessible: false
+
+  SecretRDSInstanceAttachment:
+    Type: AWS::SecretsManager::SecretTargetAttachment
+    Properties:
+      SecretId: !Ref MyRDSInstanceSecret
+      TargetId: !Ref RdsPostgres
+      TargetType: AWS::RDS::DBInstance
+
+  PostgresSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Postgres security group
+      VpcId: !Ref VpcId
+      SecurityGroupIngress:
+        - FromPort: 5432
+          ToPort: 5432
+          SourceSecurityGroupId: !Ref AccessSecurityGroupId
+          IpProtocol: tcp
+
+  MyRDSInstanceSecret:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Description: "WXTM Bridge database instance secrets"
+      Name: !Sub /wxtm-bridge/${Environment}/rds-secrets
+      GenerateSecretString:
+        SecretStringTemplate: '{"username": "root"}'
+        GenerateStringKey: "password"
+        PasswordLength: 16
+        ExcludeCharacters: '"@/\'
+
+Outputs:
+  PostgresSecurityGroup:
+    Value: !Ref PostgresSecurityGroup
+    Description: Security group of postgres instance
+  PostgresEndpointAddress:
+    Value: !GetAtt RdsPostgres.Endpoint.Address
+  PostgresSecrets:
+    Value: !Sub /wxtm-bridge/${Environment}/rds-secrets
+  DBName:
+    Value: !Ref DBName
+  MyRDSInstanceSecretArn:
+    Description: RDS secrets arn
+    Value: !Ref MyRDSInstanceSecret
