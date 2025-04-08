@@ -74,3 +74,18 @@ Resources:
         VpcId: !Ref VpcId
         PublicSubnet: !Select [0, !Split [",", !Ref PublicSubnets]]
         SecurityGroup: !Ref LambdaSecurityGroup
+
+  WXTMBridgeService:
+    Type: AWS::Serverless::Application
+    Properties:
+      Location: ./wxtm-bridge.yml
+      Parameters:
+        Environment: !Ref Environment
+        HostedZoneId: !Ref HostedZoneId
+        Domain: !Ref Domain
+        CertificateArn: !Ref CertificateArn
+        DbHost: !GetAtt WXTMBridgeDatabase.Outputs.PostgresEndpointAddress
+        DbSecret: !GetAtt WXTMBridgeDatabase.Outputs.PostgresSecrets
+        DbName: !GetAtt WXTMBridgeDatabase.Outputs.DBName
+        AccessSecurityGroupId: !Ref LambdaSecurityGroup
+        Subnets: !GetAtt PrivateSubnets.Outputs.PrivateSubnets

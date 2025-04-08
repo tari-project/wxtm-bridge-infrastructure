@@ -22,88 +22,6 @@ Parameters:
   Subnets:
     Type: String
     Description: Subnets to run lambdas in
-  KmsKeyId:
-    Type: String
-  ChainId:
-    Type: Number
-  BlockchainNetworkUrl:
-    Type: String
-  TokenGateFilesStorageDistributionId:
-    Type: String
-  SesSender:
-    Type: String
-  NorthCapitalSecret:
-    Type: String
-  NorthCapitalUrl:
-    Type: String
-  FilesBucketName:
-    Type: String
-  DocumentsBucketName:
-    Type: String
-  OfferingDocumentsBucketName:
-    Type: String
-  AccreditationBucketName:
-    Type: String
-  EvmStateMachineArn:
-    Type: String
-  PostKYCSuccessStateMachineArn:
-    Type: String
-  AccreddSecrets:
-    Type: String
-  AccreditationSheduleValue:
-    Type: Number
-  AccreditationSheduleUnit:
-    Type: String
-  IssuerPortalUrl:
-    Type: String
-  LoginPortalUrl:
-    Type: String
-  AccountsEventPatternSource:
-    Type: String
-  CreateAccountsEventPatternDetail:
-    Type: String
-  ResetAccountsEventPatternDetail:
-    Type: String
-  AddToGroupEventPatternDetail:
-    Type: String
-  RemoveFromGroupEventPatternDetail:
-    Type: String
-  AddUserToManyGroupsEventPatternDetail:
-    Type: String
-  CreateOrUpdateOfferingEventPatternDetail:
-    Type: String
-  SnsOriginationNumber:
-    Type: String
-  CreateWalletEventPatternDetail:
-    Type: String
-  AddToInvestorsGroupEventPatternDetail:
-    Type: String
-  ClientCreatedEventPatternDetail:
-    Type: String
-  SendTemplatedEmailEventPatternDetail:
-    Type: String
-  SyncAccountsEventPatternDetail:
-    Type: String
-  UpdateOfferingGroupsPatternDetails:
-    Type: String
-  SyncInvestorsTablePatternDetails:
-    Type: String
-  OfferingGroupDbName:
-    Type: String
-  AddToSubOfferingInvestorsGroupEventPatternDetail:
-    Type: String
-  RemoveFromSubOfferingInvestorsGroupEventPatternDetail:
-    Type: String
-  AddToCapitalCallInvestorsGroupEventPatternDetail:
-    Type: String
-  RemoveFromCapitalCallInvestorsGroupEventPatternDetail:
-    Type: String
-  CancelInvestorInvitationEventPatternDetails:
-    Type: String
-  InvestorJoinsOfferingEventPatternDetail:
-    Type: String
-  SwaggerPassword:
-    Type: String
 
 Globals:
   Function:
@@ -149,9 +67,9 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Tracing: Active
-      CodeUri: ./tokengate-backend.zip
-      Handler: dist/src/lambdaEntrypoint.app
-      AutoPublishAlias: wxtm-backend
+      CodeUri: ./wxtm-bridge-backend.zip
+      Handler: out/app/app.app
+      AutoPublishAlias: WxtmBackend
 
       Events:
         NestJs:
@@ -166,10 +84,11 @@ Resources:
                 - secretsmanager:GetSecretValue
               Effect: Allow
               Resource:
-                - !Sub arn:aws:secretsmanager:*:*:secret:/acquire/${Environment}/*
-            - Effect: "Allow"
-              Action:
+                - !Sub arn:aws:secretsmanager:*:*:secret:/wxtm-bridge/${Environment}/*
+            - Action:
+                - codedeploy:*
                 - events:PutEvents
+              Effect: "Allow"
               Resource: "*"
 
       DeploymentPreference:
@@ -180,9 +99,9 @@ Resources:
   RunMigrations:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: !Sub "CodeDeployHook_tokenGateServicesRunMigrations_${Environment}"
-      CodeUri: ./tokengate-backend.zip
-      Handler: dist/src/lambdaEntrypoint.runMigrations
+      FunctionName: !Sub "RunMigrations_${Environment}"
+      CodeUri: ./wxtm-bridge-migrations.zip
+      Handler: out/migrations/migrations.runMigrations
       Policies:
         Statement:
           - Effect: "Allow"
@@ -192,7 +111,7 @@ Resources:
           - Effect: "Allow"
             Action:
               - secretsmanager:GetSecretValue
-            Resource: !Sub "arn:aws:secretsmanager:*:*:secret:/acquire/${Environment}/*"
+            Resource: !Sub "arn:aws:secretsmanager:*:*:secret:/wxtm-bridge/${Environment}/*"
           - Effect: "Allow"
             Action:
               - events:PutEvents
