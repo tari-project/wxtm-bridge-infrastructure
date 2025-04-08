@@ -26,6 +26,12 @@ Parameters:
     Type: String
   DBAllocatedStorage:
     Type: Number
+  BastionKeyName:
+    Type: String
+    Default: ""
+
+Conditions:
+  ShouldRunBastion: !Not [!Equals [!Ref BastionKeyName, ""]]
 
 Resources:
   PrivateSubnets:
@@ -58,3 +64,13 @@ Resources:
         VpcId: !Ref VpcId
         Subnets: !GetAtt PrivateSubnets.Outputs.PrivateSubnets
         AccessSecurityGroupId: !Ref LambdaSecurityGroup
+
+  Bastion:
+    Type: AWS::Serverless::Application
+    Condition: ShouldRunBastion
+    Properties:
+      Location: ./bastion.yml
+      Parameters:
+        VpcId: !Ref VpcId
+        PublicSubnet: !Select [0, !Split [",", !Ref PublicSubnets]]
+        SecurityGroup: !Ref LambdaSecurityGroup

@@ -7,12 +7,15 @@
     "PrivateSubnetCidrBlockB": "172.31.112.0/20",
     "PrivateSubnetCidrBlockC": "172.31.128.0/20",
     "CidrIp": "172.31.0.0/16",
+
+    "BastionKeyName": "DevBastion",
+
+    "CertificateArn": "none",
+    "HostedZoneId": "Z062045929A4FEA5GI51E",
+    "Domain": "bridge.tari.com",
+
     "DBName": "wxtmBridgeDev",
     "DBInstanceClass": "db.t3.micro",
-    "DBAllocatedStorage": 10,
-
-    "HostedZoneId": "Z0314953QDJ0JC4ZC8KD",
-    "CertificateArn": "none",
-    "Domain": "none"
+    "DBAllocatedStorage": 10
   }
 }

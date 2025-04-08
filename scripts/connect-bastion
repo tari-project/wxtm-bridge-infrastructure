@@ -2,12 +2,10 @@
 
 USER=ubuntu
 KEY=${1-~/.ssh/id_rsa.pub}
-STACK_NAME=acquire-dev-Bastion-1AJ2OMK6RB307
-STAGING_STACK_NAME=acquire-staging-Bastion-XEPTZOB2IHEE
-DEMO_STACK_NAME=acquire-demo-Bastion-40YV2ITPXC2A
-PROD_STACK_NAME=acquire-production-Bastion-1NSC2LSVVHOTS
+STACK_NAME=wxtm-bridge-dev-Bastion-1FSHXT8RRHUZX
+PROFILE=tari-dev-sso  # Specify your SSO profile here
 
-DESCRIPTION=$(aws ec2 describe-instances --filters "Name=tag:aws:cloudformation:stack-name,Values=$STACK_NAME" "Name=instance-state-name,Values=running")
+DESCRIPTION=$(aws ec2 describe-instances --filters "Name=tag:aws:cloudformation:stack-name,Values=$STACK_NAME" "Name=instance-state-name,Values=running" --profile $PROFILE)
 
 INSTANCE_ID=$(echo $DESCRIPTION | jq -r ".Reservations[0].Instances[0].InstanceId")
 if [ "$INSTANCE_ID" = "null" ]; then
@@ -18,6 +16,6 @@ fi;
 AVAILABILITY_ZONE=$(echo $DESCRIPTION | jq -r ".Reservations[0].Instances[0].Placement.AvailabilityZone")
 PUBLIC_IP=$(echo $DESCRIPTION | jq -r ".Reservations[0].Instances[0].PublicIpAddress")
 
-aws ec2-instance-connect send-ssh-public-key --instance-id $INSTANCE_ID --availability-zone $AVAILABILITY_ZONE --instance-os-user $USER --ssh-public-key file://$KEY
+aws ec2-instance-connect send-ssh-public-key --instance-id $INSTANCE_ID --availability-zone $AVAILABILITY_ZONE --instance-os-user $USER --ssh-public-key file://$KEY --profile $PROFILE
 
 ssh $USER@$PUBLIC_IP

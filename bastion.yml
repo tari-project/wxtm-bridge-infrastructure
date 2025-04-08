@@ -1,0 +1,54 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "Configuration for setting up private subnets and NAT instance. This is required for lambda functions to access resources over public internet connection"
+Parameters:
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+  SecurityGroup:
+    Type: String
+  PublicSubnet:
+    Type: AWS::EC2::Subnet::Id
+
+Mappings:
+  NatRegionMap:
+    us-east-1:
+      AMI: ami-04631c7c1b4d3ad8e
+
+Resources:
+  BastionSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: "Security group of Bastion instance"
+      VpcId: !Ref VpcId
+      SecurityGroupIngress:
+        - FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+          IpProtocol: tcp
+
+  BastionInstance:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: t2.micro
+
+      ImageId:
+        Fn::FindInMap:
+          - NatRegionMap
+          - !Ref AWS::Region
+          - AMI
+      NetworkInterfaces:
+        - GroupSet:
+            - !Ref BastionSecurityGroup
+            - !Ref SecurityGroup
+          AssociatePublicIpAddress: true
+          DeviceIndex: "0"
+          DeleteOnTermination: true
+          SubnetId: !Ref PublicSubnet
+      UserData:
+        Fn::Base64:
+          Fn::Join:
+            - "\n"
+            - - "#!/bin/bash"
+              - "yum update -y && yum install -y yum-cron postgresql ec2-instance-connect && chkconfig yum-cron on"
+      Tags:
+        - Key: Name
+          Value: "Bastion"

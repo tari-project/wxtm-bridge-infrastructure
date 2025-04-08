@@ -1,0 +1,7 @@
+.aws-sam
+
+main.yml
+
+*.zip
+
+.vscode

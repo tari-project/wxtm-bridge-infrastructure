@@ -14,7 +14,8 @@ ARTIFACT_NAME=main.zip
 .PHONY: deploy-dev
 
 copy-s3-zip-files-dev:
-	# aws s3 cp s3://$(DEV_ARTIFACTS_BUCKET_NAME)/dev/________/______.zip .
+	 aws s3 cp s3://$(DEV_ARTIFACTS_BUCKET_NAME)/dev/wxtm-bridge/wxtm-bridge-backend.zip .
+	 aws s3 cp s3://$(DEV_ARTIFACTS_BUCKET_NAME)/dev/wxtm-bridge/wxtm-bridge-migrations.zip .
 
 build-dev: copy-s3-zip-files-dev
 	sam build
