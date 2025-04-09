@@ -99,7 +99,7 @@ Resources:
   RunMigrations:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: !Sub "RunMigrations_${Environment}"
+      FunctionName: !Sub "CodeDeployHook_RunMigrations_${Environment}"
       CodeUri: ./wxtm-bridge-migrations.zip
       Handler: out/migrations/migrations.runMigrations
       Policies:
