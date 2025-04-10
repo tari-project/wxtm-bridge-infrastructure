@@ -18,6 +18,8 @@ Parameters:
     Type: String
   HostedZoneId:
     Type: String
+  StaticCloudFrontHostedZoneId:
+    Type: String
   Domain:
     Type: String
   DBName:
@@ -89,3 +91,13 @@ Resources:
         DbName: !GetAtt WXTMBridgeDatabase.Outputs.DBName
         AccessSecurityGroupId: !Ref LambdaSecurityGroup
         Subnets: !GetAtt PrivateSubnets.Outputs.PrivateSubnets
+
+  AdminPanel:
+    Type: AWS::Serverless::Application
+    Properties:
+      Location: ./frontend.yml
+      Parameters:
+        DomainName: !Sub admin.${Domain}
+        CertificateArn: !Ref CertificateArn
+        HostedZoneId: !Ref HostedZoneId
+        StaticCloudFrontHostedZoneId: !Ref StaticCloudFrontHostedZoneId
