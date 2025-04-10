@@ -107,3 +107,14 @@ Resources:
         HostedZoneId: !Ref HostedZoneId
         StaticCloudFrontHostedZoneId: !Ref StaticCloudFrontHostedZoneId
         RestrictAndRedirectFunctionArn: !GetAtt Functions.Outputs.RestrictAndRedirectFunctionArn
+
+  Bridge:
+    Type: AWS::Serverless::Application
+    Properties:
+      Location: ./frontend.yml
+      Parameters:
+        DomainName: !Ref Domain
+        CertificateArn: !Ref CertificateArn
+        HostedZoneId: !Ref HostedZoneId
+        StaticCloudFrontHostedZoneId: !Ref StaticCloudFrontHostedZoneId
+        RestrictAndRedirectFunctionArn: !GetAtt Functions.Outputs.RestrictAndRedirectFunctionArn

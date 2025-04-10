@@ -5,7 +5,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       InlineCode: |
-        const password = 'cGFuZW5rYTpvb1RoZhs62366292926276';
+        const password = 'OmNHRnVaVzVyWVRwdmIxUm9aaHM2MjM2NjI5MjkyNjI3Ng==';
         const handler = (event, context, callback, configPath) => {
           const request = event.Records[0].cf.request;
           const headers = request.headers;
