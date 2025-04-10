@@ -92,6 +92,11 @@ Resources:
         AccessSecurityGroupId: !Ref LambdaSecurityGroup
         Subnets: !GetAtt PrivateSubnets.Outputs.PrivateSubnets
 
+  Functions:
+    Type: AWS::Serverless::Application
+    Properties:
+      Location: ./functions.yml
+
   AdminPanel:
     Type: AWS::Serverless::Application
     Properties:
@@ -101,3 +106,4 @@ Resources:
         CertificateArn: !Ref CertificateArn
         HostedZoneId: !Ref HostedZoneId
         StaticCloudFrontHostedZoneId: !Ref StaticCloudFrontHostedZoneId
+        RestrictAndRedirectFunctionArn: !GetAtt Functions.Outputs.RestrictAndRedirectFunctionArn

@@ -14,6 +14,12 @@ Parameters:
     Type: String
     Default: ""
     Description: Limit serving files only to specified prefix
+  RestrictAndRedirectFunctionArn:
+    Type: String
+    Default: ""
+
+Conditions:
+  ShouldRestrictAccess: !Not [!Equals [!Ref RestrictAndRedirectFunctionArn, ""]]
 
 Resources:
   FrontendBucket:
@@ -55,6 +61,12 @@ Resources:
               - - S3
                 - Ref: FrontendBucket
           ViewerProtocolPolicy: redirect-to-https
+          LambdaFunctionAssociations:
+            - !If
+              - ShouldRestrictAccess
+              - EventType: viewer-request
+                LambdaFunctionARN: !Ref RestrictAndRedirectFunctionArn
+              - !Ref AWS::NoValue
         Enabled: True
         HttpVersion: http2
         IPV6Enabled: True
