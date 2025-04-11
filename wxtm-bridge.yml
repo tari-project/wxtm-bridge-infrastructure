@@ -22,6 +22,10 @@ Parameters:
   Subnets:
     Type: String
     Description: Subnets to run lambdas in
+  Auth0Domain:
+    Type: String
+  Auth0Audience:
+    Type: String
 
 Globals:
   Function:
@@ -48,6 +52,8 @@ Globals:
             - !Ref DbSecret
             - ":SecretString:password}}"
         DATABASE_NAME: !Ref DbName
+        AUTH0_DOMAIN: !Ref Auth0Domain
+        AUTH0_AUDIENCE: !Ref Auth0Audience
 
 Resources:
   Api:

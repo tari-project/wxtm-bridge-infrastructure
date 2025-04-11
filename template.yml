@@ -28,6 +28,10 @@ Parameters:
     Type: String
   DBAllocatedStorage:
     Type: Number
+  Auth0Domain:
+    Type: String
+  Auth0Audience:
+    Type: String
   BastionKeyName:
     Type: String
     Default: ""
@@ -91,6 +95,8 @@ Resources:
         DbName: !GetAtt WXTMBridgeDatabase.Outputs.DBName
         AccessSecurityGroupId: !Ref LambdaSecurityGroup
         Subnets: !GetAtt PrivateSubnets.Outputs.PrivateSubnets
+        Auth0Domain: !Ref Auth0Domain
+        Auth0Audience: !Ref Auth0Audience
 
   Functions:
     Type: AWS::Serverless::Application
