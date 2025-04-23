@@ -32,6 +32,10 @@ Parameters:
     Type: String
   Auth0Audience:
     Type: String
+  SubgraphSheduleValue:
+    Type: Number
+  SubgraphSheduleUnit:
+    Type: String
   BastionKeyName:
     Type: String
     Default: ""
@@ -97,6 +101,8 @@ Resources:
         Subnets: !GetAtt PrivateSubnets.Outputs.PrivateSubnets
         Auth0Domain: !Ref Auth0Domain
         Auth0Audience: !Ref Auth0Audience
+        SubgraphSheduleValue: !Ref SubgraphSheduleValue
+        SubgraphSheduleUnit: !Ref SubgraphSheduleUnit
 
   Functions:
     Type: AWS::Serverless::Application

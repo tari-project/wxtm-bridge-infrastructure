@@ -26,6 +26,10 @@ Parameters:
     Type: String
   Auth0Audience:
     Type: String
+  SubgraphSheduleValue:
+    Type: Number
+  SubgraphSheduleUnit:
+    Type: String
 
 Globals:
   Function:
@@ -125,3 +129,30 @@ Resources:
 
       DeploymentPreference:
         Enabled: false
+
+  SubgraphHandler:
+    Type: AWS::Serverless::Function
+    Properties:
+      Tracing: Active
+      CodeUri: ./wxtm-bridge-subgraph.zip
+      Handler: out/subgraph/subgraph.handler
+      AutoPublishAlias: SubgraphHandler
+
+      Events:
+        CronEvent:
+          Type: Schedule
+          Properties:
+            Schedule: !Sub "rate(${SubgraphSheduleValue} ${SubgraphSheduleUnit})"
+            Name: !Sub SubgraphShedule-${Environment}
+            Description: Trigger Lambda
+
+      Policies:
+        - Statement:
+            - Action:
+                - secretsmanager:GetSecretValue
+              Effect: Allow
+              Resource:
+                - !Sub arn:aws:secretsmanager:*:*:secret:/wxtm-bridge/${Environment}/*
+
+      DeploymentPreference:
+        Type: AllAtOnce
