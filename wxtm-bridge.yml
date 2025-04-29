@@ -28,6 +28,8 @@ Parameters:
     Type: String
   SubgraphSheduleValue:
     Type: Number
+  SubgraphUrl:
+    Type: String
   SubgraphSheduleUnit:
     Type: String
 
@@ -58,6 +60,7 @@ Globals:
         DATABASE_NAME: !Ref DbName
         AUTH0_DOMAIN: !Ref Auth0Domain
         AUTH0_AUDIENCE: !Ref Auth0Audience
+        SUBGRAPH_URL: !Ref SubgraphUrl
 
 Resources:
   Api:
