@@ -18,6 +18,7 @@
     "Auth0Audience": "https://api.staging-bridge.tari.com/",
     "SubgraphSheduleValue": 60,
     "SubgraphSheduleUnit": "minutes",
+    "SubgraphUrl": "https://api.studio.thegraph.com/query/109825/wxtm-bridge/version/latest",
     "BastionKeyName": "DevBastion"
   }
 }
