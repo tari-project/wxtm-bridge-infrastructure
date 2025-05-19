@@ -1,0 +1,228 @@
+Transform: AWS::Serverless-2016-10-31
+Parameters:
+  Environment:
+    Type: String
+  PublicSubnets:
+    Type: String
+  VpcId:
+    Type: String
+  ServiceName:
+    Type: String
+    Default: "wtxm-bridge-processor"
+  MinotariWalletImage:
+    Type: AWS::SSM::Parameter::Value<String>
+  MinotariWalletImageTag:
+    Type: String
+
+Resources:
+  ProcessorTaskRole:
+    Type: AWS::IAM::Role
+    DeletionPolicy: Retain
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+            Action: sts:AssumeRole
+      Path: /
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/CloudWatchFullAccess
+      Policies:
+        - PolicyName: AccessEFS
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action:
+                  - elasticfilesystem:ClientMount
+                  - elasticfilesystem:ClientWrite
+                  - elasticfilesystem:DescribeMountTargets
+                  - elasticfilesystem:DescribeFileSystems
+                Resource: "*"
+        - PolicyName: ExecuteCommadn
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Resource: "*"
+                Action:
+                  - ssmmessages:CreateControlChannel
+                  - ssmmessages:CreateDataChannel
+                  - ssmmessages:OpenControlChannel
+                  - ssmmessages:OpenDataChannel
+
+  ECSTaskExecutionRole:
+    Type: AWS::IAM::Role
+    DeletionPolicy: Retain
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+            Action: sts:AssumeRole
+      Path: /
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/CloudWatchFullAccess
+      Policies:
+        - PolicyName: AmazonECSTaskExecutionRolePolicy
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action:
+                  # ECR ECS
+                  - ecr:GetAuthorizationToken
+                  - ecr:BatchCheckLayerAvailability
+                  - ecr:GetDownloadUrlForLayer
+                  - ecr:BatchGetImage
+                  - ecs:DescribeTasks
+                  # ECS tasks to upload logs to CloudWatch
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: "*"
+        - PolicyName: AccessEFS
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action:
+                  - elasticfilesystem:CreateFileSystem
+                  - elasticfilesystem:ClientMount
+                  - elasticfilesystem:ClientWrite
+                  - elasticfilesystem:DescribeMountTargets
+                  - elasticfilesystem:DescribeFileSystems
+                Resource: "*"
+
+
+  ECSCluster:
+    Type: AWS::ECS::Cluster
+    DeletionPolicy: Retain
+    Properties:
+      ClusterName: !Join ["", [!Ref ServiceName, ECSCluster, !Ref Environment]]
+
+  LogGroup:
+    Type: AWS::Logs::LogGroup
+    DeletionPolicy: Retain
+    Properties:
+      LogGroupName: !Ref AWS::StackName
+      RetentionInDays: 7
+
+  IPFSFileSystem2:
+    Type: AWS::EFS::FileSystem
+    DeletionPolicy: Retain
+    Properties:
+      FileSystemTags:
+        - Key: Name
+          Value: !Ref ECSCluster
+
+  IPFSFileSystemSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    DeletionPolicy: Retain
+    Properties:
+      VpcId: !Ref VpcId
+      GroupDescription: EFS Security Group
+      SecurityGroupIngress:
+        - SourceSecurityGroupId: !Ref ContainerSecurityGroup
+          IpProtocol: -1
+
+  ContainerSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    DeletionPolicy: Retain
+    Properties:
+     VpcId: !Ref VpcId
+     GroupDescription: ECS Containers Security Group
+
+  MountTargetSubnet0:
+    Type: AWS::EFS::MountTarget
+    DeletionPolicy: Retain
+    Properties:
+      FileSystemId: !Ref IPFSFileSystem2
+      SecurityGroups:
+        - !Ref IPFSFileSystemSecurityGroup
+      SubnetId: !Select [0, !Split [",", !Ref PublicSubnets]]
+
+  MountTargetSubnet1:
+    Type: AWS::EFS::MountTarget
+    DeletionPolicy: Retain
+    Properties:
+      FileSystemId: !Ref IPFSFileSystem2
+      SecurityGroups:
+        - !Ref IPFSFileSystemSecurityGroup
+      SubnetId: !Select [1, !Split [",", !Ref PublicSubnets]]
+
+  TaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      NetworkMode: awsvpc
+      Cpu: 1024
+      Memory: 2048
+      RequiresCompatibilities:
+        - FARGATE
+      ExecutionRoleArn: !GetAtt ECSTaskExecutionRole.Arn
+      TaskRoleArn: !GetAtt ProcessorTaskRole.Arn
+      ContainerDefinitions:
+        - Image: !Sub ${MinotariWalletImage}:${MinotariWalletImageTag}
+          Name: minotari-console-wallet
+          User: tari
+          LinuxParameters:
+            InitProcessEnabled: true
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Ref LogGroup
+              awslogs-region: !Ref AWS::Region
+              awslogs-stream-prefix: minotari-console-wallet
+          Command:
+            - --view-private-key a727a225f8c8ffb6eee00e636d046e4dc9c615b480df449c7ec1d91709b1150c
+            - --spend-key 62cbd055cbd4137e39754b33ca6e1a1f909224217656e1b814ac87b83a96d975
+            - -p base_node.mining_enabled=false
+            - --grpc-enabled
+            - --grpc-address /ip4/0.0.0.0/tcp/44871
+            - --non-interactive-mode
+          Environment:
+            - Name: MINOTARI_WALLET_PASSWORD
+              Value: Ohngie7daeyu
+          MountPoints:
+            - ContainerPath: /var/tari/wallet
+              ReadOnly: false
+              SourceVolume: efs
+
+      Volumes:
+        - Name: efs
+          EFSVolumeConfiguration:
+            FilesystemId: !Ref IPFSFileSystem2
+            TransitEncryption: "ENABLED"
+            AuthorizationConfig:
+              AccessPointId: !Ref EfsAccessPoint
+
+  EfsAccessPoint:
+    Type: AWS::EFS::AccessPoint
+    Properties:
+      FileSystemId: !Ref IPFSFileSystem2
+      PosixUser:
+        Uid: "1000"
+        Gid: "1000"
+      RootDirectory:
+        Path: "/data"
+        CreationInfo:
+          OwnerGid: "1000"
+          OwnerUid: "1000"
+          Permissions: "755"
+  Service:
+    Type: AWS::ECS::Service
+    Properties:
+      ServiceName: !Ref AWS::StackName
+      TaskDefinition: !Ref TaskDefinition
+      Cluster: !Ref ECSCluster
+      LaunchType: FARGATE
+      EnableExecuteCommand: true
+      DesiredCount: 1
+      DeploymentConfiguration:
+        MaximumPercent: 100
+        MinimumHealthyPercent: 0
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: ENABLED
+          Subnets:
+            - !Select [0, !Split [",", !Ref PublicSubnets]]
+            - !Select [1, !Split [",", !Ref PublicSubnets]]
+          SecurityGroups:
+            - !Ref ContainerSecurityGroup

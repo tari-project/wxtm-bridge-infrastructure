@@ -1,0 +1,30 @@
+Transform: AWS::Serverless-2016-10-31
+Parameters:
+  Environment:
+    Type: String
+
+
+Resources:
+  MinotariWalletEcrRepository:
+    Type: AWS::ECR::Repository
+    Properties:
+      RepositoryName: minotari-console-wallet
+
+  ProcessorEcrRepository:
+    Type: AWS::ECR::Repository
+    Properties:
+      RepositoryName: wxtm-bridge-processor
+
+  MinotariWalletEcrParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub /wxtm-bridge/${Environment}/ecr/minotari-console-wallet
+      Type: String
+      Value: !GetAtt MinotariWalletEcrRepository.RepositoryUri
+
+  ProcessorEcrRepositoryParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub /wxtm-bridge/${Environment}/ecr/wxtm-bridge-processor
+      Type: String
+      Value: !GetAtt ProcessorEcrRepository.RepositoryUri
