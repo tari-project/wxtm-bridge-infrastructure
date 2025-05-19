@@ -181,7 +181,7 @@ Resources:
             - Name: MINOTARI_WALLET_PASSWORD
               Value: Ohngie7daeyu
           MountPoints:
-            - ContainerPath: /var/tari/wallet
+            - ContainerPath: /var/tari/wallet2
               ReadOnly: false
               SourceVolume: efs
 
