@@ -31,6 +31,11 @@ Parameters:
     Type: AWS::SSM::Parameter::Value<String>
   EthRpcUrl:
     Type: String
+  OperationMode:
+    Type: String
+    AllowedValues:
+      - proposer
+      - finalizer
 
 Resources:
   ProcessorTaskRole:
@@ -123,7 +128,7 @@ Resources:
     Type: AWS::ECS::Cluster
     DeletionPolicy: Retain
     Properties:
-      ClusterName: !Join ["", [!Ref ServiceName, ECSCluster, !Ref Environment]]
+      ClusterName: !Join ["", [!Ref ServiceName, ECSCluster, !Ref Environment, "-", !Ref OperationMode]]
 
   LogGroup:
     Type: AWS::Logs::LogGroup
@@ -244,6 +249,8 @@ Resources:
               Value: !Ref KmsKeyId
             - Name: ETH_RPC_URL
               Value: !Ref EthRpcUrl
+            - Name: OPERATION_MODE
+              Value: !Ref OperationMode
 
       Volumes:
         - Name: efs
