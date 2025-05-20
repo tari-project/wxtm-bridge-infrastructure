@@ -6,6 +6,13 @@
     "MinotariWalletImage": "/wxtm-bridge/development/ecr/minotari-console-wallet",
     "MinotariWalletImageTag": "v2.1.1-pre.0_20250509_3218cf7",
     "ViewPrivateKey": "a727a225f8c8ffb6eee00e636d046e4dc9c615b480df449c7ec1d91709b1150c",
-    "SpendKey": "62cbd055cbd4137e39754b33ca6e1a1f909224217656e1b814ac87b83a96d975"
+    "SpendKey": "62cbd055cbd4137e39754b33ca6e1a1f909224217656e1b814ac87b83a96d975",
+    "ProcessorImage": "/wxtm-bridge/development/ecr/wxtm-bridge-processor",
+    "ProcessorImageTag": "0.0.8",
+    "BackendUrl": "/wxtm-bridge/development/urls/backend",
+    "SafeAddress": "/wxtm-bridge/development/addresses/safe",
+    "WxtmAddress": "/wxtm-bridge/development/addresses/wxtm",
+    "KmsKeyId": "/wxtm-bridge/development/kms-key-id",
+    "EthRpcUrl": "https://eth-sepolia.g.alchemy.com/v2/9NFbmWtzlDK_NV9xEf1ubiTSYrVIpscH"
   }
 }
