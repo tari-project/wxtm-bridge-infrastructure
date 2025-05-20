@@ -17,6 +17,14 @@ Parameters:
     Type: String
   SpendKey:
     Type: String
+  ProcessorImage:
+    Type: AWS::SSM::Parameter::Value<String>
+  ProcessorImageTag:
+    Type: String
+  SafeAddress:
+    Type: AWS::SSM::Parameter::Value<String>
+  WxtmAddress:
+    Type: AWS::SSM::Parameter::Value<String>
 
 Resources:
   ProcessorTaskRole:
@@ -194,6 +202,15 @@ Resources:
             - ContainerPath: /var/tari/wallet2
               ReadOnly: false
               SourceVolume: efs
+        - Image: !Sub ${ProcessorImage}:${ProcessorImageTag}
+          Name: bridge-processor
+          Environment:
+            ENVIRONMENT: !Ref Environment
+            MINOTARI_WALLET_HOST: minotari-console-wallet
+            WXTM_BRIDGE_BACKEND_URL: !Ref back
+            SAFE_ADDRESS: !Ref SafeAddress
+            WXTM_ADDRESS: !Ref WxtmAddress
+            KMS_KEY_ID: !Ref problem
 
       Volumes:
         - Name: efs

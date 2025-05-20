@@ -5,3 +5,4 @@ main.yml
 *.zip
 
 .vscode
+.idea
