@@ -21,10 +21,16 @@ Parameters:
     Type: AWS::SSM::Parameter::Value<String>
   ProcessorImageTag:
     Type: String
+  BackendUrl:
+    Type: AWS::SSM::Parameter::Value<String>
   SafeAddress:
     Type: AWS::SSM::Parameter::Value<String>
   WxtmAddress:
     Type: AWS::SSM::Parameter::Value<String>
+  KmsKeyId:
+    Type: AWS::SSM::Parameter::Value<String>
+  EthRpcUrl:
+    Type: String
 
 Resources:
   ProcessorTaskRole:
@@ -61,6 +67,15 @@ Resources:
                   - ssmmessages:CreateDataChannel
                   - ssmmessages:OpenControlChannel
                   - ssmmessages:OpenDataChannel
+        - PolicyName: KmsKeyAccess
+          PolicyDocument:
+            Statement:
+                - Effect: Allow
+                  Action:
+                    - kms:Decrypt
+                    - kms:GenerateDataKey
+                    - kms:GetPublicKey
+                  Resource: !Sub arn:aws:kms:${AWS::Region}:${AWS::AccountId}:key/${KmsKeyId}
 
   ECSTaskExecutionRole:
     Type: AWS::IAM::Role
@@ -202,15 +217,33 @@ Resources:
             - ContainerPath: /var/tari/wallet2
               ReadOnly: false
               SourceVolume: efs
+          PortMappings:
+            - ContainerPort: 44871
+              HostPort: 44871
+              Protocol: tcp
         - Image: !Sub ${ProcessorImage}:${ProcessorImageTag}
-          Name: bridge-processor
+          Name: wxtm-bridge-processor
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Ref LogGroup
+              awslogs-region: !Ref AWS::Region
+              awslogs-stream-prefix: wxtm-bridge-processor
           Environment:
-            ENVIRONMENT: !Ref Environment
-            MINOTARI_WALLET_HOST: minotari-console-wallet
-            WXTM_BRIDGE_BACKEND_URL: !Ref back
-            SAFE_ADDRESS: !Ref SafeAddress
-            WXTM_ADDRESS: !Ref WxtmAddress
-            KMS_KEY_ID: !Ref problem
+            - Name: ENVIRONMENT
+              Value: !Ref Environment
+            - Name: MINOTARI_WALLET_HOST
+              Value: localhost
+            - Name: WXTM_BRIDGE_BACKEND_URL
+              Value: !Ref BackendUrl
+            - Name: SAFE_ADDRESS
+              Value: !Ref SafeAddress
+            - Name: WXTM_ADDRESS
+              Value: !Ref WxtmAddress
+            - Name: KMS_KEY_ID
+              Value: !Ref KmsKeyId
+            - Name: ETH_RPC_URL
+              Value: !Ref EthRpcUrl
 
       Volumes:
         - Name: efs
@@ -244,7 +277,7 @@ Resources:
       Cluster: !Ref ECSCluster
       LaunchType: FARGATE
       EnableExecuteCommand: true
-      DesiredCount: 1
+      DesiredCount: 0
       DeploymentConfiguration:
         MaximumPercent: 100
         MinimumHealthyPercent: 0

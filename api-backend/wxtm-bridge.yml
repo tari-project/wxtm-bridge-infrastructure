@@ -159,3 +159,10 @@ Resources:
 
       DeploymentPreference:
         Type: AllAtOnce
+
+  BackendUrlParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub /wxtm-bridge/${Environment}/urls/backend
+      Type: String
+      Value: !Sub https://api.${Domain}
