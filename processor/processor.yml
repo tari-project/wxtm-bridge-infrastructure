@@ -277,7 +277,7 @@ Resources:
       Cluster: !Ref ECSCluster
       LaunchType: FARGATE
       EnableExecuteCommand: true
-      DesiredCount: 0
+      DesiredCount: 1
       DeploymentConfiguration:
         MaximumPercent: 100
         MinimumHealthyPercent: 0
