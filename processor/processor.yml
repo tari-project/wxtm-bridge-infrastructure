@@ -179,8 +179,6 @@ Resources:
           # Command:
           #   - infinity
           Command:
-            - --view-private-key $VIEW_PRIVATE_KEY
-            - --spend-key $SPEND_KEY
             - -p base_node.mining_enabled=false
             - --grpc-enabled
             - --grpc-address /ip4/0.0.0.0/tcp/44871
@@ -188,9 +186,9 @@ Resources:
           Environment:
             - Name: MINOTARI_WALLET_PASSWORD
               Value: Ohngie7daeyu
-            - Name: VIEW_PRIVATE_KEY
+            - Name: MINOTARI_WALLET_VIEW_PRIVATE_KEY
               Value: !Ref ViewPrivateKey
-            - Name: SPEND_KEY
+            - Name: MINOTARI_WALLET_SPEND_KEY
               Value: !Ref SpendKey
           MountPoints:
             - ContainerPath: /var/tari/wallet2
