@@ -21,7 +21,6 @@ Parameters:
 Resources:
   ProcessorTaskRole:
     Type: AWS::IAM::Role
-    DeletionPolicy: Retain
     Properties:
       AssumeRolePolicyDocument:
         Statement:
@@ -56,7 +55,6 @@ Resources:
 
   ECSTaskExecutionRole:
     Type: AWS::IAM::Role
-    DeletionPolicy: Retain
     Properties:
       AssumeRolePolicyDocument:
         Statement:
@@ -111,7 +109,6 @@ Resources:
 
   IPFSFileSystem2:
     Type: AWS::EFS::FileSystem
-    DeletionPolicy: Retain
     Properties:
       FileSystemTags:
         - Key: Name
@@ -119,7 +116,6 @@ Resources:
 
   IPFSFileSystemSecurityGroup:
     Type: AWS::EC2::SecurityGroup
-    DeletionPolicy: Retain
     Properties:
       VpcId: !Ref VpcId
       GroupDescription: EFS Security Group
@@ -129,14 +125,12 @@ Resources:
 
   ContainerSecurityGroup:
     Type: AWS::EC2::SecurityGroup
-    DeletionPolicy: Retain
     Properties:
      VpcId: !Ref VpcId
      GroupDescription: ECS Containers Security Group
 
   MountTargetSubnet0:
     Type: AWS::EFS::MountTarget
-    DeletionPolicy: Retain
     Properties:
       FileSystemId: !Ref IPFSFileSystem2
       SecurityGroups:
@@ -145,7 +139,6 @@ Resources:
 
   MountTargetSubnet1:
     Type: AWS::EFS::MountTarget
-    DeletionPolicy: Retain
     Properties:
       FileSystemId: !Ref IPFSFileSystem2
       SecurityGroups:
