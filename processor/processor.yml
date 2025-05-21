@@ -67,26 +67,6 @@ Resources:
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/CloudWatchFullAccess
       Policies:
-        - PolicyName: AccessEFS
-          PolicyDocument:
-            Statement:
-              - Effect: Allow
-                Action:
-                  - elasticfilesystem:ClientMount
-                  - elasticfilesystem:ClientWrite
-                  - elasticfilesystem:DescribeMountTargets
-                  - elasticfilesystem:DescribeFileSystems
-                Resource: "*"
-        - PolicyName: ExecuteCommadn
-          PolicyDocument:
-            Statement:
-              - Effect: Allow
-                Resource: "*"
-                Action:
-                  - ssmmessages:CreateControlChannel
-                  - ssmmessages:CreateDataChannel
-                  - ssmmessages:OpenControlChannel
-                  - ssmmessages:OpenDataChannel
         - PolicyName: KmsKeyAccess
           PolicyDocument:
             Statement:
