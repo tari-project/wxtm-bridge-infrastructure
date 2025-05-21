@@ -17,6 +17,15 @@ Parameters:
     Type: String
   SpendKey:
     Type: String
+  InstanceType:
+    Type: String
+  ECSAMI:
+    Description: AMI ID
+    Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
+    Default: /aws/service/ecs/optimized-ami/amazon-linux-2/recommended/image_id
+  NetworkName:
+    Type: String
+    Default: "esmeralda"
   ProcessorImage:
     Type: AWS::SSM::Parameter::Value<String>
   ProcessorImageTag:
@@ -36,6 +45,13 @@ Parameters:
     AllowedValues:
       - proposer
       - finalizer
+
+Mappings:
+  EC2InstanceConnectMap:
+    "eu-north-1":
+      SourcePrefixListId: "pl-0bd77a95ba8e317a6"
+    "eu-central-1":
+      SourcePrefixListId: "pl-03384955215625250"
 
 Resources:
   ProcessorTaskRole:
@@ -76,57 +92,172 @@ Resources:
             Statement:
                 - Effect: Allow
                   Action:
+                    - kms:Sign
                     - kms:Decrypt
                     - kms:GenerateDataKey
                     - kms:GetPublicKey
                   Resource: !Sub arn:aws:kms:${AWS::Region}:${AWS::AccountId}:key/${KmsKeyId}
 
-  ECSTaskExecutionRole:
+  ECSRole:
     Type: AWS::IAM::Role
     Properties:
+      Path: /
       AssumeRolePolicyDocument:
         Statement:
           - Effect: Allow
             Principal:
-              Service: ecs-tasks.amazonaws.com
+              Service: ec2.amazonaws.com
             Action: sts:AssumeRole
-      Path: /
-      ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/CloudWatchFullAccess
       Policies:
-        - PolicyName: AmazonECSTaskExecutionRolePolicy
-          PolicyDocument:
-            Statement:
-              - Effect: Allow
-                Action:
-                  # ECR ECS
-                  - ecr:GetAuthorizationToken
-                  - ecr:BatchCheckLayerAvailability
-                  - ecr:GetDownloadUrlForLayer
-                  - ecr:BatchGetImage
-                  - ecs:DescribeTasks
-                  # ECS tasks to upload logs to CloudWatch
-                  - logs:CreateLogStream
-                  - logs:PutLogEvents
-                Resource: "*"
-        - PolicyName: AccessEFS
-          PolicyDocument:
-            Statement:
-              - Effect: Allow
-                Action:
-                  - elasticfilesystem:CreateFileSystem
-                  - elasticfilesystem:ClientMount
-                  - elasticfilesystem:ClientWrite
-                  - elasticfilesystem:DescribeMountTargets
-                  - elasticfilesystem:DescribeFileSystems
-                Resource: "*"
+      - PolicyName: ecs-service
+        PolicyDocument:
+          Statement:
+            - Effect: "Allow"
+              Action:
+                - ecs:CreateCluster
+                - ecs:DeregisterContainerInstance
+                - ecs:DiscoverPollEndpoint
+                - ecs:Poll
+                - ecs:RegisterContainerInstance
+                - ecs:StartTelemetrySession
+                - ecs:Submit*
+                - ecr:BatchCheckLayerAvailability
+                - ecr:BatchGetImage
+                - ecr:GetDownloadUrlForLayer
+                - ecr:GetAuthorizationToken
+                - ec2:DescribeInstanceStatus
+                - ec2:AssociateAddress
+                - logs:CreateLogStream
+                - logs:CreateLogGroup
+                - logs:PutLogEvents
+                - logs:CreateLogStream
+                - logs:DescribeLogGroups
+                - logs:DescribeLogStreams
+                - logs:PutLogEvents
+              Resource: "*"
+            - Effect: Allow
+              Action:
+                - ec2:AttachVolume
+                - ec2:CreateVolume
+                - ec2:CreateSnapshot
+                - ec2:CreateTags
+                - ec2:DeleteVolume
+                - ec2:DeleteSnapshot
+                - ec2:DescribeAvailabilityZones
+                - ec2:DescribeInstances
+                - ec2:DescribeVolumes
+                - ec2:DescribeVolumeAttribute
+                - ec2:DescribeVolumeStatus
+                - ec2:DescribeSnapshots
+                - ec2:CopySnapshot
+                - ec2:DescribeSnapshotAttribute
+                - ec2:DetachVolume
+                - ec2:ModifySnapshotAttribute
+                - ec2:ModifyVolumeAttribute
+                - ec2:DescribeTags
+              Resource: "*"
+
+  ECSInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Path: /
+      Roles:
+        - !Ref ECSRole
+
+  ECSAutoScalingGroup:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Properties:
+      AvailabilityZones:
+        - !Select
+          - 0
+          - Fn::GetAZs: !Ref 'AWS::Region'
+      LaunchTemplate:
+        LaunchTemplateId: !Ref ECSLaunchTemplate
+        Version: !GetAtt ECSLaunchTemplate.LatestVersionNumber
+      MinSize: "0"
+      MaxSize: "1"
+      DesiredCapacity: "1"
+      Tags:
+        - Key: Name
+          Value: !Ref AWS::StackName
+          PropagateAtLaunch: true
+
+  ECSLaunchTemplate:
+    Type: AWS::EC2::LaunchTemplate
+    Properties:
+      LaunchTemplateData:
+        ImageId: !Ref ECSAMI
+        InstanceType: !Ref InstanceType
+        SecurityGroupIds:
+          - !GetAtt ContainerSecurityGroup.GroupId
+        IamInstanceProfile:
+          Arn: !GetAtt ECSInstanceProfile.Arn
+        UserData:
+          "Fn::Base64": !Sub |
+            #!/bin/bash
+            yum install -y aws-cfn-bootstrap
+            /opt/aws/bin/cfn-init -v --region ${AWS::Region} --stack ${AWS::StackName} --resource ECSLaunchTemplate
+            docker plugin install rexray/ebs REXRAY_PREEMPT=true EBS_REGION=${AWS::Region} --grant-all-permissions
+
+    Metadata:
+      AWS::CloudFormation::Init:
+        config:
+          packages:
+            yum:
+              ecs-init: []
+              awslogs: []
+              ec2-instance-connect: []
+          commands:
+            01_add_instance_to_cluster:
+              command: !Sub echo ECS_CLUSTER=${ECSCluster} >> /etc/ecs/ecs.config
+          services:
+            sysvinit:
+              cfn-hup:
+                enabled: true
+                ensureRunning: true
+                files:
+                  - /etc/cfn/cfn-hup.conf
+                  - /etc/cfn/hooks.d/cfn-auto-reloader.conf
+              awslogsd:
+                enabled: true
+                ensureRunning: true
+                files:
+                  - /etc/awslogs/awslogs.conf
+                  - /etc/awslogs/awscli.conf
+          files:
+            "/etc/cfn/cfn-hup.conf":
+              mode: "000400"
+              owner: root
+              group: root
+              content: !Sub |
+                [main]
+                stack=${AWS::StackId}
+                region=${AWS::Region}
+            "/etc/cfn/hooks.d/cfn-auto-reloader.conf":
+              content: !Sub |
+                [cfn-auto-reloader-hook]
+                triggers=post.update
+                path=Resources.ECSLaunchTemplate.Metadata.AWS::CloudFormation::Init
+                action=/opt/aws/bin/cfn-init -v --region ${AWS::Region} --stack ${AWS::StackName} --resource ECSLaunchConfiguration
+            "/etc/awslogs/awscli.conf":
+              content: !Sub |
+                [plugins]
+                cwlogs = cwlogs
+                [default]
+                region = ${AWS::Region}
+            "/etc/awslogs/awslogs.conf":
+              content: !Sub |
+                [/var/tari/wallet/${NetworkName}/log/wallet/base_layer.log]
+                file = /var/tari/wallet/${NetworkName}/log/wallet/base_layer.log
+                log_group_name = ${LogGroup}
+                log_stream_name = {instance_id}/var/tari/wallet/${NetworkName}/log/wallet/base_layer.log
+
 
 
   ECSCluster:
     Type: AWS::ECS::Cluster
-    DeletionPolicy: Retain
     Properties:
-      ClusterName: !Join ["", [!Ref ServiceName, ECSCluster, !Ref Environment, "-", !Ref OperationMode]]
+      ClusterName: !Ref AWS::StackName
 
   LogGroup:
     Type: AWS::Logs::LogGroup
@@ -135,53 +266,25 @@ Resources:
       LogGroupName: !Ref AWS::StackName
       RetentionInDays: 7
 
-  IPFSFileSystem2:
-    Type: AWS::EFS::FileSystem
-    Properties:
-      FileSystemTags:
-        - Key: Name
-          Value: !Ref ECSCluster
-
-  IPFSFileSystemSecurityGroup:
-    Type: AWS::EC2::SecurityGroup
-    Properties:
-      VpcId: !Ref VpcId
-      GroupDescription: EFS Security Group
-      SecurityGroupIngress:
-        - SourceSecurityGroupId: !Ref ContainerSecurityGroup
-          IpProtocol: -1
-
   ContainerSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
      VpcId: !Ref VpcId
      GroupDescription: ECS Containers Security Group
+     SecurityGroupIngress:
+       -
+         SourcePrefixListId: !FindInMap [EC2InstanceConnectMap, !Ref AWS::Region, SourcePrefixListId]
+         FromPort: 22
+         ToPort: 22
+         IpProtocol: tcp
 
-  MountTargetSubnet0:
-    Type: AWS::EFS::MountTarget
-    Properties:
-      FileSystemId: !Ref IPFSFileSystem2
-      SecurityGroups:
-        - !Ref IPFSFileSystemSecurityGroup
-      SubnetId: !Select [0, !Split [",", !Ref PublicSubnets]]
-
-  MountTargetSubnet1:
-    Type: AWS::EFS::MountTarget
-    Properties:
-      FileSystemId: !Ref IPFSFileSystem2
-      SecurityGroups:
-        - !Ref IPFSFileSystemSecurityGroup
-      SubnetId: !Select [1, !Split [",", !Ref PublicSubnets]]
 
   TaskDefinition:
     Type: AWS::ECS::TaskDefinition
     Properties:
-      NetworkMode: awsvpc
+      NetworkMode: bridge
       Cpu: 1024
-      Memory: 2048
-      RequiresCompatibilities:
-        - FARGATE
-      ExecutionRoleArn: !GetAtt ECSTaskExecutionRole.Arn
+      Memory: 1536
       TaskRoleArn: !GetAtt ProcessorTaskRole.Arn
       ContainerDefinitions:
         - Image: !Sub ${MinotariWalletImage}:${MinotariWalletImageTag}
@@ -212,15 +315,16 @@ Resources:
             - Name: MINOTARI_WALLET_SPEND_KEY
               Value: !Ref SpendKey
           MountPoints:
-            - ContainerPath: /var/tari/wallet2
-              ReadOnly: false
-              SourceVolume: efs
+            - ContainerPath: /var/tari/wallet
+              SourceVolume: wallet-data
           PortMappings:
             - ContainerPort: 44871
               HostPort: 44871
               Protocol: tcp
         - Image: !Sub ${ProcessorImage}:${ProcessorImageTag}
           Name: wxtm-bridge-processor
+          Links:
+            - minotari-console-wallet
           LogConfiguration:
             LogDriver: awslogs
             Options:
@@ -231,7 +335,7 @@ Resources:
             - Name: ENVIRONMENT
               Value: !Ref Environment
             - Name: MINOTARI_WALLET_HOST
-              Value: localhost
+              Value: minotari-console-wallet
             - Name: WXTM_BRIDGE_BACKEND_URL
               Value: !Ref BackendUrl
             - Name: SAFE_ADDRESS
@@ -244,48 +348,23 @@ Resources:
               Value: !Ref EthRpcUrl
             - Name: OPERATION_MODE
               Value: !Ref OperationMode
+            - Name: AWS_REGION
+              Value: !Ref AWS::Region
+
 
       Volumes:
-        - Name: efs
-          EFSVolumeConfiguration:
-            FilesystemId: !Ref IPFSFileSystem2
-            TransitEncryption: "ENABLED"
-            AuthorizationConfig:
-              AccessPointId: !Ref EfsAccessPoint
-
-  EfsAccessPoint:
-    Type: AWS::EFS::AccessPoint
-    Properties:
-      FileSystemId: !Ref IPFSFileSystem2
-      PosixUser:
-        Uid: "1000"
-        Gid: "1000"
-      RootDirectory:
-        Path: "/data"
-        CreationInfo:
-          OwnerGid: "1000"
-          OwnerUid: "1000"
-          Permissions: "755"
+        - Name: wallet-data
+          DockerVolumeConfiguration:
+            Autoprovision: true
+            Scope: shared
+            Driver: rexray/ebs
+            DriverOpts:
+              volumetype: gp2
+              size: "2"
   Service:
     Type: AWS::ECS::Service
-    DependsOn:
-      - MountTargetSubnet0
-      - MountTargetSubnet1
     Properties:
       ServiceName: !Ref AWS::StackName
       TaskDefinition: !Ref TaskDefinition
       Cluster: !Ref ECSCluster
-      LaunchType: FARGATE
-      EnableExecuteCommand: true
-      DesiredCount: 1
-      DeploymentConfiguration:
-        MaximumPercent: 100
-        MinimumHealthyPercent: 0
-      NetworkConfiguration:
-        AwsvpcConfiguration:
-          AssignPublicIp: ENABLED
-          Subnets:
-            - !Select [0, !Split [",", !Ref PublicSubnets]]
-            - !Select [1, !Split [",", !Ref PublicSubnets]]
-          SecurityGroups:
-            - !Ref ContainerSecurityGroup
+      SchedulingStrategy: DAEMON
