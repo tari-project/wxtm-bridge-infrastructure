@@ -26,6 +26,25 @@ Parameters:
   NetworkName:
     Type: String
     Default: "esmeralda"
+  ProcessorImage:
+    Type: AWS::SSM::Parameter::Value<String>
+  ProcessorImageTag:
+    Type: String
+  BackendUrl:
+    Type: AWS::SSM::Parameter::Value<String>
+  SafeAddress:
+    Type: AWS::SSM::Parameter::Value<String>
+  WxtmAddress:
+    Type: AWS::SSM::Parameter::Value<String>
+  KmsKeyId:
+    Type: AWS::SSM::Parameter::Value<String>
+  EthRpcUrl:
+    Type: String
+  OperationMode:
+    Type: String
+    AllowedValues:
+      - proposer
+      - finalizer
 
 Mappings:
   EC2InstanceConnectMap:
@@ -68,6 +87,16 @@ Resources:
                   - ssmmessages:CreateDataChannel
                   - ssmmessages:OpenControlChannel
                   - ssmmessages:OpenDataChannel
+        - PolicyName: KmsKeyAccess
+          PolicyDocument:
+            Statement:
+                - Effect: Allow
+                  Action:
+                    - kms:Sign
+                    - kms:Decrypt
+                    - kms:GenerateDataKey
+                    - kms:GetPublicKey
+                  Resource: !Sub arn:aws:kms:${AWS::Region}:${AWS::AccountId}:key/${KmsKeyId}
 
   ECSRole:
     Type: AWS::IAM::Role
@@ -224,34 +253,6 @@ Resources:
                 log_stream_name = {instance_id}/var/tari/wallet/${NetworkName}/log/wallet/base_layer.log
 
 
-  # ECSTaskExecutionRole:
-  #   Type: AWS::IAM::Role
-  #   Properties:
-  #     AssumeRolePolicyDocument:
-  #       Statement:
-  #         - Effect: Allow
-  #           Principal:
-  #             Service: ecs-tasks.amazonaws.com
-  #           Action: sts:AssumeRole
-  #     Path: /
-  #     ManagedPolicyArns:
-  #       - arn:aws:iam::aws:policy/CloudWatchFullAccess
-  #     Policies:
-  #       - PolicyName: AmazonECSTaskExecutionRolePolicy
-  #         PolicyDocument:
-  #           Statement:
-  #             - Effect: Allow
-  #               Action:
-  #                 # ECR ECS
-  #                 - ecr:GetAuthorizationToken
-  #                 - ecr:BatchCheckLayerAvailability
-  #                 - ecr:GetDownloadUrlForLayer
-  #                 - ecr:BatchGetImage
-  #                 - ecs:DescribeTasks
-  #                 # ECS tasks to upload logs to CloudWatch
-  #                 - logs:CreateLogStream
-  #                 - logs:PutLogEvents
-  #               Resource: "*"
 
   ECSCluster:
     Type: AWS::ECS::Cluster
@@ -316,6 +317,40 @@ Resources:
           MountPoints:
             - ContainerPath: /var/tari/wallet
               SourceVolume: wallet-data
+          PortMappings:
+            - ContainerPort: 44871
+              HostPort: 44871
+              Protocol: tcp
+        - Image: !Sub ${ProcessorImage}:${ProcessorImageTag}
+          Name: wxtm-bridge-processor
+          Links:
+            - minotari-console-wallet
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Ref LogGroup
+              awslogs-region: !Ref AWS::Region
+              awslogs-stream-prefix: wxtm-bridge-processor
+          Environment:
+            - Name: ENVIRONMENT
+              Value: !Ref Environment
+            - Name: MINOTARI_WALLET_HOST
+              Value: minotari-console-wallet
+            - Name: WXTM_BRIDGE_BACKEND_URL
+              Value: !Ref BackendUrl
+            - Name: SAFE_ADDRESS
+              Value: !Ref SafeAddress
+            - Name: WXTM_ADDRESS
+              Value: !Ref WxtmAddress
+            - Name: KMS_KEY_ID
+              Value: !Ref KmsKeyId
+            - Name: ETH_RPC_URL
+              Value: !Ref EthRpcUrl
+            - Name: OPERATION_MODE
+              Value: !Ref OperationMode
+            - Name: AWS_REGION
+              Value: !Ref AWS::Region
+
 
       Volumes:
         - Name: wallet-data

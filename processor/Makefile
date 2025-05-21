@@ -1,5 +1,7 @@
-DEV_PARAMETERS_FILE=template-config-proposer.dev.json
-DEV_PARAMETERS=$(shell cat $(DEV_PARAMETERS_FILE) | jq -r '.Parameters | to_entries | map("\(.key)=\(.value)") | join(" ")')
+DEV_PARAMETERS_PROPOSER_FILE=template-config-proposer.dev.json
+DEV_PARAMETERS_FINALIZER_FILE=template-config-finalizer.dev.json
+DEV_PARAMETERS_PROPOSER=$(shell cat $(DEV_PARAMETERS_PROPOSER_FILE) | jq -r '.Parameters | to_entries | map("\(.key)=\(.value)") | join(" ")')
+DEV_PARAMETERS_FINALIZER=$(shell cat $(DEV_PARAMETERS_FINALIZER_FILE) | jq -r '.Parameters | to_entries | map("\(.key)=\(.value)") | join(" ")')
 DEV_REGION=eu-north-1
 DEV_ARTIFACTS_BUCKET_NAME=artifacts.wxtm-bridge
 DEV_ARTIFACTS_S3_PREFIX=dev/infrastructure
@@ -10,7 +12,10 @@ CAPABILITIES=CAPABILITY_IAM CAPABILITY_AUTO_EXPAND
 
 
 deploy-dev-base:
-	sam deploy --template-file base_setup.yml --stack-name $(DEV_STACK_NAME) --capabilities $(CAPABILITIES)  --region $(DEV_REGION) --parameter-overrides $(DEV_PARAMETERS)
+	sam deploy --template-file base_setup.yml --stack-name $(DEV_STACK_NAME) --capabilities $(CAPABILITIES)  --region $(DEV_REGION) --parameter-overrides $(DEV_PARAMETERS_PROPOSER)
 
 deploy-dev-processor:
-	sam deploy --template-file processor.yml --stack-name $(DEV_STACK_NAME)-proposer --capabilities $(CAPABILITIES)  --region $(DEV_REGION) --parameter-overrides $(DEV_PARAMETERS)
+	sam deploy --template-file processor.yml --stack-name $(DEV_STACK_NAME)-proposer --capabilities $(CAPABILITIES)  --region $(DEV_REGION) --parameter-overrides $(DEV_PARAMETERS_PROPOSER)
+
+deploy-dev-finalizer:
+	sam deploy --template-file processor.yml --stack-name $(DEV_STACK_NAME)-finalizer --capabilities $(CAPABILITIES)  --region $(DEV_REGION) --parameter-overrides $(DEV_PARAMETERS_FINALIZER)
