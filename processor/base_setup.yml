@@ -2,6 +2,8 @@ Transform: AWS::Serverless-2016-10-31
 Parameters:
   Environment:
     Type: String
+  GhOIDCProviderArn:
+    Type: String
 
 
 Resources:
@@ -28,3 +30,41 @@ Resources:
       Name: !Sub /wxtm-bridge/${Environment}/ecr/wxtm-bridge-processor
       Type: String
       Value: !GetAtt ProcessorEcrRepository.RepositoryUri
+
+  ECRPushCIRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: ecr-push-ci-github-workflow
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Action: sts:AssumeRoleWithWebIdentity
+            Principal:
+              Federated:
+                - !Ref GhOIDCProviderArn
+            Condition:
+              StringEquals:
+                token.actions.githubusercontent.com:aud: sts.amazonaws.com
+              StringLike:
+                token.actions.githubusercontent.com:sub: repo:tari-project/wxtm-bridge-processor:*
+      Path: "/"
+      Policies:
+        - PolicyName: ECRPushPolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - ecr:BatchCheckLayerAvailability
+                  - ecr:GetDownloadUrlForLayer
+                  - ecr:BatchGetImage
+                  - ecr:InitiateLayerUpload
+                  - ecr:UploadLayerPart
+                  - ecr:CompleteLayerUpload
+                  - ecr:PutImage
+                Resource:
+                  - !GetAtt ProcessorEcrRepository.Arn
+              - Effect: Allow
+                Action:
+                  - ecr:GetAuthorizationToken
+                Resource: "*"

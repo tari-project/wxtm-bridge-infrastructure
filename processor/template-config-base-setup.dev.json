@@ -1,0 +1,6 @@
+{
+  "Parameters": {
+    "Environment": "development",
+    "GhOIDCProviderArn": "arn:aws:iam::848802075970:oidc-provider/token.actions.githubusercontent.com"
+  }
+}
