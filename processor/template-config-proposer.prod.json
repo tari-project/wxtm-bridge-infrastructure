@@ -4,7 +4,7 @@
     "PublicSubnets": "subnet-00ce94ff4324e194b,subnet-087200f02c7039e37",
     "VpcId": "vpc-03987a53527922fb6",
     "MinotariWalletImage": "/wxtm-bridge/production/ecr/minotari-console-wallet",
-    "MinotariWalletImageTag": "v2.1.1-pre.0_20250509_3218cf7",
+    "MinotariWalletImageTag": "v2.1.1_20250514_9012bc0",
     "ViewPrivateKey": "a727a225f8c8ffb6eee00e636d046e4dc9c615b480df449c7ec1d91709b1150c",
     "SpendKey": "602a93ce43a9ab6f7db56a07ed8e17b5e6750ce636cceff34f2f558b84c30252",
     "InstanceType": "t3.small",
