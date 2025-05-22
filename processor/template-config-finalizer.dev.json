@@ -11,8 +11,9 @@
     "ProcessorImage": "/wxtm-bridge/development/ecr/wxtm-bridge-processor",
     "ProcessorImageTag": "0.0.8",
     "BackendUrl": "/wxtm-bridge/development/urls/backend",
-    "SafeAddress": "/wxtm-bridge/development/addresses/safe",
+    "MintLowSafeAddress": "/wxtm-bridge/development/addresses/mint-low-safe",
     "WxtmAddress": "/wxtm-bridge/development/addresses/wxtm",
+    "WxtmControllerAddress": "/wxtm-bridge/development/addresses/wxtm-controller",
     "KmsKeyId": "/wxtm-bridge/development/kms-key/finalizer/id",
     "EthRpcUrl": "https://eth-sepolia.g.alchemy.com/v2/NU_ExF56-B4IH893K38on",
     "OperationMode": "finalizer"
