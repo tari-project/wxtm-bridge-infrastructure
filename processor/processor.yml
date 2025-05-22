@@ -299,7 +299,7 @@ Resources:
               Value: !Ref SpendKey
           MountPoints:
             - ContainerPath: /var/tari/wallet
-              SourceVolume: wallet-data
+              SourceVolume: !Sub wallet-data-${OperationMode}
           PortMappings:
             - ContainerPort: 44871
               HostPort: 44871
@@ -337,7 +337,7 @@ Resources:
               Value: !Ref AWS::Region
 
       Volumes:
-        - Name: wallet-data
+        - Name: !Sub wallet-data-${OperationMode}
           DockerVolumeConfiguration:
             Autoprovision: true
             Scope: shared
