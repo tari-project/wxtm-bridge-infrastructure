@@ -32,9 +32,11 @@ Parameters:
     Type: String
   BackendUrl:
     Type: AWS::SSM::Parameter::Value<String>
-  SafeAddress:
+  MintLowSafeAddress:
     Type: AWS::SSM::Parameter::Value<String>
   WxtmAddress:
+    Type: AWS::SSM::Parameter::Value<String>
+  WxtmControllerAddress:
     Type: AWS::SSM::Parameter::Value<String>
   KmsKeyId:
     Type: AWS::SSM::Parameter::Value<String>
@@ -70,13 +72,13 @@ Resources:
         - PolicyName: KmsKeyAccess
           PolicyDocument:
             Statement:
-                - Effect: Allow
-                  Action:
-                    - kms:Sign
-                    - kms:Decrypt
-                    - kms:GenerateDataKey
-                    - kms:GetPublicKey
-                  Resource: !Sub arn:aws:kms:${AWS::Region}:${AWS::AccountId}:key/${KmsKeyId}
+              - Effect: Allow
+                Action:
+                  - kms:Sign
+                  - kms:Decrypt
+                  - kms:GenerateDataKey
+                  - kms:GetPublicKey
+                Resource: !Sub arn:aws:kms:${AWS::Region}:${AWS::AccountId}:key/${KmsKeyId}
 
   ECSRole:
     Type: AWS::IAM::Role
@@ -89,53 +91,53 @@ Resources:
               Service: ec2.amazonaws.com
             Action: sts:AssumeRole
       Policies:
-      - PolicyName: ecs-service
-        PolicyDocument:
-          Statement:
-            - Effect: "Allow"
-              Action:
-                - ecs:CreateCluster
-                - ecs:DeregisterContainerInstance
-                - ecs:DiscoverPollEndpoint
-                - ecs:Poll
-                - ecs:RegisterContainerInstance
-                - ecs:StartTelemetrySession
-                - ecs:Submit*
-                - ecr:BatchCheckLayerAvailability
-                - ecr:BatchGetImage
-                - ecr:GetDownloadUrlForLayer
-                - ecr:GetAuthorizationToken
-                - ec2:DescribeInstanceStatus
-                - ec2:AssociateAddress
-                - logs:CreateLogStream
-                - logs:CreateLogGroup
-                - logs:PutLogEvents
-                - logs:CreateLogStream
-                - logs:DescribeLogGroups
-                - logs:DescribeLogStreams
-                - logs:PutLogEvents
-              Resource: "*"
-            - Effect: Allow
-              Action:
-                - ec2:AttachVolume
-                - ec2:CreateVolume
-                - ec2:CreateSnapshot
-                - ec2:CreateTags
-                - ec2:DeleteVolume
-                - ec2:DeleteSnapshot
-                - ec2:DescribeAvailabilityZones
-                - ec2:DescribeInstances
-                - ec2:DescribeVolumes
-                - ec2:DescribeVolumeAttribute
-                - ec2:DescribeVolumeStatus
-                - ec2:DescribeSnapshots
-                - ec2:CopySnapshot
-                - ec2:DescribeSnapshotAttribute
-                - ec2:DetachVolume
-                - ec2:ModifySnapshotAttribute
-                - ec2:ModifyVolumeAttribute
-                - ec2:DescribeTags
-              Resource: "*"
+        - PolicyName: ecs-service
+          PolicyDocument:
+            Statement:
+              - Effect: "Allow"
+                Action:
+                  - ecs:CreateCluster
+                  - ecs:DeregisterContainerInstance
+                  - ecs:DiscoverPollEndpoint
+                  - ecs:Poll
+                  - ecs:RegisterContainerInstance
+                  - ecs:StartTelemetrySession
+                  - ecs:Submit*
+                  - ecr:BatchCheckLayerAvailability
+                  - ecr:BatchGetImage
+                  - ecr:GetDownloadUrlForLayer
+                  - ecr:GetAuthorizationToken
+                  - ec2:DescribeInstanceStatus
+                  - ec2:AssociateAddress
+                  - logs:CreateLogStream
+                  - logs:CreateLogGroup
+                  - logs:PutLogEvents
+                  - logs:CreateLogStream
+                  - logs:DescribeLogGroups
+                  - logs:DescribeLogStreams
+                  - logs:PutLogEvents
+                Resource: "*"
+              - Effect: Allow
+                Action:
+                  - ec2:AttachVolume
+                  - ec2:CreateVolume
+                  - ec2:CreateSnapshot
+                  - ec2:CreateTags
+                  - ec2:DeleteVolume
+                  - ec2:DeleteSnapshot
+                  - ec2:DescribeAvailabilityZones
+                  - ec2:DescribeInstances
+                  - ec2:DescribeVolumes
+                  - ec2:DescribeVolumeAttribute
+                  - ec2:DescribeVolumeStatus
+                  - ec2:DescribeSnapshots
+                  - ec2:CopySnapshot
+                  - ec2:DescribeSnapshotAttribute
+                  - ec2:DetachVolume
+                  - ec2:ModifySnapshotAttribute
+                  - ec2:ModifyVolumeAttribute
+                  - ec2:DescribeTags
+                Resource: "*"
 
   ECSInstanceProfile:
     Type: AWS::IAM::InstanceProfile
@@ -150,7 +152,7 @@ Resources:
       AvailabilityZones:
         - !Select
           - 0
-          - Fn::GetAZs: !Ref 'AWS::Region'
+          - Fn::GetAZs: !Ref "AWS::Region"
       LaunchTemplate:
         LaunchTemplateId: !Ref ECSLaunchTemplate
         Version: !GetAtt ECSLaunchTemplate.LatestVersionNumber
@@ -232,8 +234,6 @@ Resources:
                 log_group_name = ${LogGroup}
                 log_stream_name = {instance_id}/var/tari/wallet/${NetworkName}/log/wallet/base_layer.log
 
-
-
   ECSCluster:
     Type: AWS::ECS::Cluster
     Properties:
@@ -249,15 +249,18 @@ Resources:
   ContainerSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-     VpcId: !Ref VpcId
-     GroupDescription: ECS Containers Security Group
-     SecurityGroupIngress:
-       -
-         SourcePrefixListId: !FindInMap [EC2InstanceConnectMap, !Ref AWS::Region, SourcePrefixListId]
-         FromPort: 22
-         ToPort: 22
-         IpProtocol: tcp
-
+      VpcId: !Ref VpcId
+      GroupDescription: ECS Containers Security Group
+      SecurityGroupIngress:
+        - SourcePrefixListId:
+            !FindInMap [
+              EC2InstanceConnectMap,
+              !Ref AWS::Region,
+              SourcePrefixListId,
+            ]
+          FromPort: 22
+          ToPort: 22
+          IpProtocol: tcp
 
   TaskDefinition:
     Type: AWS::ECS::TaskDefinition
@@ -318,10 +321,12 @@ Resources:
               Value: minotari-console-wallet
             - Name: WXTM_BRIDGE_BACKEND_URL
               Value: !Ref BackendUrl
-            - Name: SAFE_ADDRESS
-              Value: !Ref SafeAddress
+            - Name: MINT_LOW_SAFE_ADDRESS
+              Value: !Ref MintLowSafeAddress
             - Name: WXTM_ADDRESS
               Value: !Ref WxtmAddress
+            - Name: WXTM_CONTROLLER_ADDRESS
+              Value: !Ref WxtmControllerAddress
             - Name: KMS_KEY_ID
               Value: !Ref KmsKeyId
             - Name: ETH_RPC_URL
@@ -330,7 +335,6 @@ Resources:
               Value: !Ref OperationMode
             - Name: AWS_REGION
               Value: !Ref AWS::Region
-
 
       Volumes:
         - Name: wallet-data
