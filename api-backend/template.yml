@@ -16,6 +16,8 @@ Parameters:
     Type: String
   CertificateArn:
     Type: String
+  CloudfrontCertificateArn:
+    Type: String
   HostedZoneId:
     Type: String
   StaticCloudFrontHostedZoneId:
@@ -44,6 +46,7 @@ Parameters:
 
 Conditions:
   ShouldRunBastion: !Not [!Equals [!Ref BastionKeyName, ""]]
+  ShouldAddLambdaAtEdge: !Equals [!Ref Environment, "development"]
 
 Resources:
   PrivateSubnets:
@@ -51,6 +54,7 @@ Resources:
     Properties:
       Location: ./private-subnets.yml
       Parameters:
+        Environment: !Ref Environment
         VpcId: !Ref VpcId
         PublicSubnet: !Select [0, !Split [",", !Ref PublicSubnets]]
         PrivateSubnetCidrBlockA: !Ref PrivateSubnetCidrBlockA
@@ -109,6 +113,7 @@ Resources:
 
   Functions:
     Type: AWS::Serverless::Application
+    Condition: ShouldAddLambdaAtEdge
     Properties:
       Location: ./functions.yml
 
@@ -118,18 +123,7 @@ Resources:
       Location: ./frontend.yml
       Parameters:
         DomainName: !Sub admin.${Domain}
-        CertificateArn: !Ref CertificateArn
+        CertificateArn: !Ref CloudfrontCertificateArn
         HostedZoneId: !Ref HostedZoneId
         StaticCloudFrontHostedZoneId: !Ref StaticCloudFrontHostedZoneId
-        RestrictAndRedirectFunctionArn: !GetAtt Functions.Outputs.RestrictAndRedirectFunctionArn
-
-  Bridge:
-    Type: AWS::Serverless::Application
-    Properties:
-      Location: ./frontend.yml
-      Parameters:
-        DomainName: !Ref Domain
-        CertificateArn: !Ref CertificateArn
-        HostedZoneId: !Ref HostedZoneId
-        StaticCloudFrontHostedZoneId: !Ref StaticCloudFrontHostedZoneId
-        RestrictAndRedirectFunctionArn: !GetAtt Functions.Outputs.RestrictAndRedirectFunctionArn
+        RestrictAndRedirectFunctionArn: !If [ShouldAddLambdaAtEdge, !GetAtt Functions.Outputs.RestrictAndRedirectFunctionArn, ""]

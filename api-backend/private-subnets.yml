@@ -17,6 +17,8 @@ Parameters:
     Type: String
   PublicSubnet:
     Type: AWS::EC2::Subnet::Id
+  Environment:
+    Type: String
   KeyName:
     Type: String
     Description: SSH Key name to access the NAT instance
@@ -29,6 +31,8 @@ Mappings:
 
 Conditions:
   SSHAccess: !Not [!Equals [!Ref KeyName, ""]]
+  IsDevelopment: !Equals [!Ref Environment, "development"]
+  IsProduction: !Equals [!Ref Environment, "production"]
 
 Resources:
   PrivateRouteTable:
@@ -41,7 +45,8 @@ Resources:
     Properties:
       RouteTableId: !Ref PrivateRouteTable
       DestinationCidrBlock: !Ref RoutingTableCidrBlock
-      InstanceId: !Ref NatInstance
+      InstanceId: !If [IsDevelopment, !Ref NatInstance, !Ref AWS::NoValue]
+      NatGatewayId: !If [IsProduction, !Ref NatGateway, !Ref AWS::NoValue]
 
   PrivateSubnetARouteTableAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
@@ -109,6 +114,7 @@ Resources:
 
   NatInstance:
     Type: AWS::EC2::Instance
+    Condition: IsDevelopment
     Properties:
       InstanceType: t2.micro
       SourceDestCheck: false
@@ -137,6 +143,22 @@ Resources:
       Tags:
         - Key: Name
           Value: "NAT instance"
+
+  NatEIP:
+    Type: AWS::EC2::EIP
+    Condition: IsProduction
+    Properties:
+      Domain: vpc
+
+  NatGateway:
+    Type: AWS::EC2::NatGateway
+    Condition: IsProduction
+    Properties:
+      AllocationId: !GetAtt NatEIP.AllocationId
+      SubnetId: !Ref PublicSubnet
+      Tags:
+        - Key: Name
+          Value: "private-subnets-nat-gateway"
 
 Outputs:
   PrivateSubnets:

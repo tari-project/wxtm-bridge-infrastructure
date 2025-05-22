@@ -1,0 +1,25 @@
+{
+  "Parameters": {
+    "Environment": "production",
+    "VpcId": "vpc-034a5befd06a12ba2",
+    "PublicSubnets": "subnet-08af71921ee565476,subnet-0a8f810f92aff3d97,subnet-0f6423448d6818c62",
+    "PrivateSubnetCidrBlockA": "172.31.48.0/20",
+    "PrivateSubnetCidrBlockB": "172.31.64.0/20",
+    "PrivateSubnetCidrBlockC": "172.31.80.0/20",
+    "CidrIp": "172.31.0.0/16",
+    "CertificateArn": "arn:aws:acm:eu-central-1:090733632832:certificate/f145d224-1647-425e-9b35-9db037a7efee",
+    "CloudfrontCertificateArn": "arn:aws:acm:us-east-1:090733632832:certificate/2a88a248-90bf-4516-afdd-77b93e14238b",
+    "HostedZoneId": "Z03129203KGK7I6CCOGFW",
+    "StaticCloudFrontHostedZoneId": "Z2FDTNDATAQYW2",
+    "Domain": "bridge.tari.com",
+    "DBName": "wxtmBridgeProd",
+    "DBInstanceClass": "db.t3.micro",
+    "DBAllocatedStorage": 10,
+    "Auth0Domain": "dev-ewh773vqsv55axxk.us.auth0.com",
+    "Auth0Audience": "https://api.staging-bridge.tari.com/",
+    "SubgraphSheduleValue": 60,
+    "SubgraphSheduleUnit": "minutes",
+    "SubgraphUrl": "https://api.studio.thegraph.com/query/109825/wxtm-bridge/version/latest",
+    "BastionKeyName": "ProdBastion"
+  }
+}

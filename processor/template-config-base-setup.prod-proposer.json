@@ -1,0 +1,6 @@
+{
+  "Parameters": {
+    "Environment": "production",
+    "GhOIDCProviderArn": "arn:aws:iam::695926189147:oidc-provider/token.actions.githubusercontent.com"
+  }
+}
