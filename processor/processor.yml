@@ -139,6 +139,19 @@ Resources:
                   - ec2:DescribeTags
                 Resource: "*"
 
+  WalletDataVolume:
+    Type: AWS::EC2::Volume
+    Properties:
+      AvailabilityZone: !Select
+        - 0
+        - Fn::GetAZs: !Ref "AWS::Region"
+      Size: 2
+      VolumeType: gp3
+      Encrypted: true
+      Tags:
+        - Key: Name
+          Value: !Sub wallet-${OperationMode}
+
   ECSInstanceProfile:
     Type: AWS::IAM::InstanceProfile
     Properties:
@@ -179,7 +192,7 @@ Resources:
             #!/bin/bash
             yum install -y aws-cfn-bootstrap
             /opt/aws/bin/cfn-init -v --region ${AWS::Region} --stack ${AWS::StackName} --resource ECSLaunchTemplate
-            docker plugin install rexray/ebs REXRAY_PREEMPT=true EBS_REGION=${AWS::Region} --grant-all-permissions
+
 
     Metadata:
       AWS::CloudFormation::Init:
@@ -192,6 +205,8 @@ Resources:
           commands:
             01_add_instance_to_cluster:
               command: !Sub echo ECS_CLUSTER=${ECSCluster} >> /etc/ecs/ecs.config
+            02_mount_ebs:
+              command: bash -x /home/ec2-user/mount-ebs
           services:
             sysvinit:
               cfn-hup:
@@ -207,6 +222,36 @@ Resources:
                   - /etc/awslogs/awslogs.conf
                   - /etc/awslogs/awscli.conf
           files:
+            "/home/ec2-user/mount-ebs":
+              mode: "000400"
+              owner: ec2-user
+              group: ec2-user
+              content: !Sub |
+                cd /home/ec2-user
+                INSTANCE_ID=`curl http://169.254.169.254/latest/meta-data/instance-id`
+                aws ec2 attach-volume --volume-id {{VolumeId}} --instance-id $INSTANCE_ID --device /dev/sdf --region {{Region}}
+                DEVICE="/dev/nvme1n1"
+                MOUNT_POINT="/home/ec2-user/wallet-data"
+                while [ ! -e $DEVICE ]; do sleep 1; done  # Wait for NVMe mapping
+
+                FS_TYPE=ext4
+
+                # Check for existing file system
+                EXISTING_FS=$(sudo blkid -o value -s TYPE "$DEVICE" || true)
+
+                if [ -z "$EXISTING_FS" ]; then
+                  echo "No file system detected. Creating $FS_TYPE on $DEVICE"
+                  mkfs -t "$FS_TYPE" "$DEVICE"
+                else
+                  echo "Existing $EXISTING_FS file system found. Skipping formatting."
+                fi
+
+                mkdir -p $MOUNT_POINT
+                mount $DEVICE $MOUNT_POINT
+                chown ec2-user:ec2-user $MOUNT_POINT
+              context:
+                VolumeId: !GetAtt WalletDataVolume.VolumeId
+                Region: !Ref AWS::Region
             "/etc/cfn/cfn-hup.conf":
               mode: "000400"
               owner: root
@@ -266,8 +311,8 @@ Resources:
     Type: AWS::ECS::TaskDefinition
     Properties:
       NetworkMode: bridge
-      Cpu: 1024
-      Memory: 1536
+      Cpu: 512
+      Memory: 512
       TaskRoleArn: !GetAtt ProcessorTaskRole.Arn
       ContainerDefinitions:
         - Image: !Sub ${MinotariWalletImage}:${MinotariWalletImageTag}
@@ -338,13 +383,8 @@ Resources:
 
       Volumes:
         - Name: !Sub wallet-data-${OperationMode}
-          DockerVolumeConfiguration:
-            Autoprovision: true
-            Scope: shared
-            Driver: rexray/ebs
-            DriverOpts:
-              volumetype: gp2
-              size: "2"
+          Host:
+            SourcePath: /home/ec2-user/wallet-data
   Service:
     Type: AWS::ECS::Service
     Properties:

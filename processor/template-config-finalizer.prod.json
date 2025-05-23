@@ -7,7 +7,7 @@
     "MinotariWalletImageTag": "v2.1.1_20250514_9012bc0",
     "ViewPrivateKey": "a727a225f8c8ffb6eee00e636d046e4dc9c615b480df449c7ec1d91709b1150c",
     "SpendKey": "602a93ce43a9ab6f7db56a07ed8e17b5e6750ce636cceff34f2f558b84c30252",
-    "InstanceType": "t3.small",
+    "InstanceType": "t3.micro",
     "ProcessorImage": "/wxtm-bridge/production/ecr/wxtm-bridge-processor",
     "ProcessorImageTag": "0.0.8",
     "BackendUrl": "/wxtm-bridge/production/urls/backend",
