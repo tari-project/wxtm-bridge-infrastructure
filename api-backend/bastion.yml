@@ -12,6 +12,8 @@ Mappings:
   NatRegionMap:
     us-east-1:
       AMI: ami-04631c7c1b4d3ad8e
+    eu-central-1:
+      AMI: ami-04a5bacc58328233d
 
 Resources:
   BastionSecurityGroup:

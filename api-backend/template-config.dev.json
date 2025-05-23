@@ -8,6 +8,7 @@
     "PrivateSubnetCidrBlockC": "172.31.128.0/20",
     "CidrIp": "172.31.0.0/16",
     "CertificateArn": "arn:aws:acm:us-east-1:848802075970:certificate/7c1f517c-badb-4f8d-89f3-8ca1e6759b7b",
+    "CloudfrontCertificateArn": "arn:aws:acm:us-east-1:848802075970:certificate/7c1f517c-badb-4f8d-89f3-8ca1e6759b7b",
     "HostedZoneId": "Z09933271AESWT98GC6G7",
     "StaticCloudFrontHostedZoneId": "Z2FDTNDATAQYW2",
     "Domain": "staging-bridge.tari.com",
