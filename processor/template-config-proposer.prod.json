@@ -1,8 +1,8 @@
 {
   "Parameters": {
     "Environment": "production",
-    "PublicSubnets": "subnet-00ce94ff4324e194b,subnet-087200f02c7039e37",
-    "VpcId": "vpc-03987a53527922fb6",
+    "PublicSubnets": "subnet-03dd81ecd576dd2ae,subnet-00ec2071834812b9a,subnet-0cb9779ce9e3133a9",
+    "VpcId": "vpc-0a4911a0b3fdeda78",
     "MinotariWalletImage": "/wxtm-bridge/production/ecr/minotari-console-wallet",
     "MinotariWalletImageTag": "v2.1.1_20250514_9012bc0",
     "ViewPrivateKey": "a727a225f8c8ffb6eee00e636d046e4dc9c615b480df449c7ec1d91709b1150c",
