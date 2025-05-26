@@ -19,7 +19,7 @@
     "Auth0Audience": "https://api.bridge.tari.com/",
     "SubgraphSheduleValue": 60,
     "SubgraphSheduleUnit": "minutes",
-    "SubgraphUrl": "https://api.studio.thegraph.com/query/109825/wxtm-bridge/version/latest",
+    "SubgraphUrl": "https://subgraph.satsuma-prod.com/e371ce443780/yat/wxtm-dev/api",
     "BastionKeyName": "ProdBastion"
   }
 }
