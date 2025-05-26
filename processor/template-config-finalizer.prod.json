@@ -9,7 +9,7 @@
     "SpendKey": "602a93ce43a9ab6f7db56a07ed8e17b5e6750ce636cceff34f2f558b84c30252",
     "InstanceType": "t3.micro",
     "ProcessorImage": "/wxtm-bridge/production/ecr/wxtm-bridge-processor",
-    "ProcessorImageTag": "0.0.8",
+    "ProcessorImageTag": "0.0.43",
     "BackendUrl": "/wxtm-bridge/production/urls/backend",
     "MintLowSafeAddress": "/wxtm-bridge/production/addresses/mint-low-safe",
     "WxtmAddress": "/wxtm-bridge/production/addresses/wxtm",
