@@ -6,7 +6,7 @@
     "MinotariWalletImage": "/wxtm-bridge/production/ecr/minotari-console-wallet",
     "MinotariWalletImageTag": "v2.1.1_20250514_9012bc0",
     "ColdWalletSecret": "/wxtm-bridge/production/cold-wallet",
-    "InstanceType": "t3.micro",
+    "InstanceType": "t3.large",
     "ProcessorImage": "/wxtm-bridge/production/ecr/wxtm-bridge-processor",
     "ProcessorImageTag": "0.0.43",
     "BackendUrl": "/wxtm-bridge/production/urls/backend",
@@ -16,6 +16,8 @@
     "KmsKeyId": "/wxtm-bridge/production/kms-key/finalizer/id",
     "EthRpcUrl": "https://eth-mainnet.g.alchemy.com/v2/NU_ExF56-B4IH893K38on",
     "OperationMode": "finalizer",
-    "NetworkName": "mainnet"
+    "NetworkName": "mainnet",
+    "TaskCpu": "2048",
+    "TaskMemory": "4096"
   }
 }
