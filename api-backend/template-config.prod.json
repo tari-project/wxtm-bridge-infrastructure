@@ -20,6 +20,7 @@
     "SubgraphSheduleValue": 60,
     "SubgraphSheduleUnit": "minutes",
     "SubgraphUrl": "https://subgraph.satsuma-prod.com/e371ce443780/yat/wxtm-dev/api",
+    "ColdWalletAddress": "_____",
     "BastionKeyName": "ProdBastion"
   }
 }

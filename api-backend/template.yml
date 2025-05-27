@@ -40,6 +40,8 @@ Parameters:
     Type: String
   SubgraphUrl:
     Type: String
+  ColdWalletAddress:
+    Type: String
   BastionKeyName:
     Type: String
     Default: ""
@@ -110,6 +112,7 @@ Resources:
         SubgraphSheduleValue: !Ref SubgraphSheduleValue
         SubgraphSheduleUnit: !Ref SubgraphSheduleUnit
         SubgraphUrl: !Ref SubgraphUrl
+        ColdWalletAddress: !Ref ColdWalletAddress
 
   Functions:
     Type: AWS::Serverless::Application
@@ -126,4 +129,9 @@ Resources:
         CertificateArn: !Ref CloudfrontCertificateArn
         HostedZoneId: !Ref HostedZoneId
         StaticCloudFrontHostedZoneId: !Ref StaticCloudFrontHostedZoneId
-        RestrictAndRedirectFunctionArn: !If [ShouldAddLambdaAtEdge, !GetAtt Functions.Outputs.RestrictAndRedirectFunctionArn, ""]
+        RestrictAndRedirectFunctionArn:
+          !If [
+            ShouldAddLambdaAtEdge,
+            !GetAtt Functions.Outputs.RestrictAndRedirectFunctionArn,
+            "",
+          ]
