@@ -20,7 +20,7 @@
     "SubgraphSheduleValue": 60,
     "SubgraphSheduleUnit": "minutes",
     "SubgraphUrl": "https://api.studio.thegraph.com/query/109825/wxtm-bridge/version/latest",
-    "ColdWalletAddress": "f2628Lzpwp8TQxF2BotpnS5VVySf4L1RMkwT2KVGY2wN4TZJDNqpuL8wgdkLszSmTSvTgg4sGmTwwzTKp8iPkaLDi15",
+    "ColdWalletSecret": "/wxtm-bridge/development/cold-wallet",
     "BastionKeyName": "DevBastion"
   }
 }
