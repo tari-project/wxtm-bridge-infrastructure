@@ -79,6 +79,13 @@ Resources:
                   - kms:GenerateDataKey
                   - kms:GetPublicKey
                 Resource: !Sub arn:aws:kms:${AWS::Region}:${AWS::AccountId}:key/${KmsKeyId}
+        - PolicyName: SNSAccess
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action:
+                  - sns:Publish
+                Resource: !Ref ErrorsTopic
 
   ECSRole:
     Type: AWS::IAM::Role
@@ -193,7 +200,6 @@ Resources:
             yum install -y aws-cfn-bootstrap
             /opt/aws/bin/cfn-init -v --region ${AWS::Region} --stack ${AWS::StackName} --resource ECSLaunchTemplate
 
-
     Metadata:
       AWS::CloudFormation::Init:
         config:
@@ -307,6 +313,42 @@ Resources:
           ToPort: 22
           IpProtocol: tcp
 
+  ErrorsTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: !Sub "${OperationMode}-errors-topic"
+      DisplayName: !Sub "${OperationMode} error notifications"
+
+  ErrorsQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub "${OperationMode}-errors-queue"
+      VisibilityTimeout: 300
+      MessageRetentionPeriod: 1209600
+
+  ErrorsQueuePolicy:
+    Type: AWS::SQS::QueuePolicy
+    Properties:
+      Queues:
+        - !Ref ErrorsQueue
+      PolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: sns.amazonaws.com
+            Action: sqs:SendMessage
+            Resource: !GetAtt ErrorsQueue.Arn
+            Condition:
+              ArnEquals:
+                aws:SourceArn: !Ref ErrorsTopic
+
+  ErrorsSubscription:
+    Type: AWS::SNS::Subscription
+    Properties:
+      TopicArn: !Ref ErrorsTopic
+      Protocol: sqs
+      Endpoint: !GetAtt ErrorsQueue.Arn
+
   TaskDefinition:
     Type: AWS::ECS::TaskDefinition
     Properties:
@@ -380,6 +422,8 @@ Resources:
               Value: !Ref OperationMode
             - Name: AWS_REGION
               Value: !Ref AWS::Region
+            - Name: ERRORS_TOPIC_ARN
+              Value: !Ref ErrorsTopic
 
       Volumes:
         - Name: !Sub wallet-data-${OperationMode}
