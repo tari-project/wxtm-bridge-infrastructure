@@ -13,9 +13,7 @@ Parameters:
     Type: AWS::SSM::Parameter::Value<String>
   MinotariWalletImageTag:
     Type: String
-  ViewPrivateKey:
-    Type: String
-  SpendKey:
+  ColdWalletSecret:
     Type: String
   InstanceType:
     Type: String
@@ -381,9 +379,9 @@ Resources:
             - Name: MINOTARI_WALLET_PASSWORD
               Value: Ohngie7daeyu
             - Name: MINOTARI_WALLET_VIEW_PRIVATE_KEY
-              Value: !Ref ViewPrivateKey
+              Value: !Sub "{{resolve:secretsmanager:${ColdWalletSecret}:SecretString:PrivateViewKey}}"
             - Name: MINOTARI_WALLET_SPEND_KEY
-              Value: !Ref SpendKey
+              Value: !Sub "{{resolve:secretsmanager:${ColdWalletSecret}:SecretString:SpendKey}}"
           MountPoints:
             - ContainerPath: /var/tari/wallet
               SourceVolume: !Sub wallet-data-${OperationMode}

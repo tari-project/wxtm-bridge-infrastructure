@@ -32,7 +32,7 @@ Parameters:
     Type: String
   SubgraphSheduleUnit:
     Type: String
-  ColdWalletAddress:
+  ColdWalletSecret:
     Type: String
 
 Globals:
@@ -63,7 +63,7 @@ Globals:
         AUTH0_DOMAIN: !Ref Auth0Domain
         AUTH0_AUDIENCE: !Ref Auth0Audience
         SUBGRAPH_URL: !Ref SubgraphUrl
-        COLD_WALLET_ADDRESS: !Ref ColdWalletAddress
+        COLD_WALLET_ADDRESS: !Sub "{{resolve:secretsmanager:${ColdWalletSecret}:SecretString:OneSidedAddress}}"
 
 Resources:
   Api:

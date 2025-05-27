@@ -40,7 +40,7 @@ Parameters:
     Type: String
   SubgraphUrl:
     Type: String
-  ColdWalletAddress:
+  ColdWalletSecret:
     Type: String
   BastionKeyName:
     Type: String
@@ -112,7 +112,7 @@ Resources:
         SubgraphSheduleValue: !Ref SubgraphSheduleValue
         SubgraphSheduleUnit: !Ref SubgraphSheduleUnit
         SubgraphUrl: !Ref SubgraphUrl
-        ColdWalletAddress: !Ref ColdWalletAddress
+        ColdWalletSecret: !Ref ColdWalletSecret
 
   Functions:
     Type: AWS::Serverless::Application
