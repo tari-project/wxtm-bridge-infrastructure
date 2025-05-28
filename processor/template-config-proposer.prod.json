@@ -15,6 +15,7 @@
     "WxtmControllerAddress": "/wxtm-bridge/production/addresses/wxtm-controller",
     "KmsKeyId": "/wxtm-bridge/production/kms-key/proposer/id",
     "EthRpcUrl": "https://eth-mainnet.g.alchemy.com/v2/NU_ExF56-B4IH893K38on",
+    "M2MTokenSecret": "/wxtm-bridge/production/m2m-token",
     "OperationMode": "proposer",
     "NetworkName": "mainnet",
     "TaskCpu": "2048",
