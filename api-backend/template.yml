@@ -42,6 +42,8 @@ Parameters:
     Type: String
   ColdWalletSecret:
     Type: String
+  M2MTokenSecret:
+    Type: String
   BastionKeyName:
     Type: String
     Default: ""
@@ -113,6 +115,7 @@ Resources:
         SubgraphSheduleUnit: !Ref SubgraphSheduleUnit
         SubgraphUrl: !Ref SubgraphUrl
         ColdWalletSecret: !Ref ColdWalletSecret
+        M2MTokenSecret: !Ref M2MTokenSecret
 
   Functions:
     Type: AWS::Serverless::Application
