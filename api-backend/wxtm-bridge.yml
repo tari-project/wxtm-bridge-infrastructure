@@ -34,6 +34,8 @@ Parameters:
     Type: String
   ColdWalletSecret:
     Type: String
+  M2MTokenSecret:
+    Type: String
 
 Globals:
   Function:
@@ -64,6 +66,7 @@ Globals:
         AUTH0_AUDIENCE: !Ref Auth0Audience
         SUBGRAPH_URL: !Ref SubgraphUrl
         COLD_WALLET_ADDRESS: !Sub "{{resolve:secretsmanager:${ColdWalletSecret}:SecretString:OneSidedAddress}}"
+        M2M_AUTH_TOKEN: !Sub "{{resolve:secretsmanager:${M2MTokenSecret}:SecretString:token}}"
 
 Resources:
   Api:
