@@ -47,6 +47,10 @@ Parameters:
   BastionKeyName:
     Type: String
     Default: ""
+  TransactionTimeoutScheduleValue:
+    Type: Number
+  TransactionTimeoutScheduleUnit:
+    Type: String
 
 Conditions:
   ShouldRunBastion: !Not [!Equals [!Ref BastionKeyName, ""]]
@@ -116,6 +120,8 @@ Resources:
         SubgraphUrl: !Ref SubgraphUrl
         ColdWalletSecret: !Ref ColdWalletSecret
         M2MTokenSecret: !Ref M2MTokenSecret
+        TransactionTimeoutScheduleValue: !Ref TransactionTimeoutScheduleValue
+        TransactionTimeoutScheduleUnit: !Ref TransactionTimeoutScheduleUnit
 
   Functions:
     Type: AWS::Serverless::Application

@@ -36,6 +36,10 @@ Parameters:
     Type: String
   M2MTokenSecret:
     Type: String
+  TransactionTimeoutScheduleValue:
+    Type: Number
+  TransactionTimeoutScheduleUnit:
+    Type: String
 
 Globals:
   Function:
@@ -154,6 +158,33 @@ Resources:
             Schedule: !Sub "rate(${SubgraphSheduleValue} ${SubgraphSheduleUnit})"
             Name: !Sub SubgraphShedule-${Environment}
             Description: Trigger Lambda
+
+      Policies:
+        - Statement:
+            - Action:
+                - secretsmanager:GetSecretValue
+              Effect: Allow
+              Resource:
+                - !Sub arn:aws:secretsmanager:*:*:secret:/wxtm-bridge/${Environment}/*
+
+      DeploymentPreference:
+        Type: AllAtOnce
+
+  TransactionTimeoutHandler:
+    Type: AWS::Serverless::Function
+    Properties:
+      Tracing: Active
+      CodeUri: ./wxtm-bridge-timeout.zip
+      Handler: out/timeout/timeout.handler
+      AutoPublishAlias: TransactionTimeoutHandler
+
+      Events:
+        CronEvent:
+          Type: Schedule
+          Properties:
+            Schedule: !Sub "rate(${TransactionTimeoutScheduleValue} ${TransactionTimeoutScheduleUnit})"
+            Name: !Sub TransactionTimeoutSchedule-${Environment}
+            Description: Process timed out transactions
 
       Policies:
         - Statement:
