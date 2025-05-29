@@ -22,6 +22,8 @@
     "SubgraphUrl": "https://subgraph.satsuma-prod.com/e371ce443780/yat/wxtm-dev/api",
     "ColdWalletSecret": "/wxtm-bridge/production/cold-wallet",
     "M2MTokenSecret": "/wxtm-bridge/production/m2m-token",
-    "BastionKeyName": "ProdBastion"
+    "BastionKeyName": "ProdBastion",
+    "TransactionTimeoutScheduleValue": 15,
+    "TransactionTimeoutScheduleUnit": "minutes"
   }
 }
