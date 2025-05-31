@@ -4,9 +4,8 @@
     "PublicSubnets": "subnet-08297b699cf0d8fbc,subnet-0993dbdb77d28c458",
     "VpcId": "vpc-07d676ca30d85ead0",
     "MinotariWalletImage": "/wxtm-bridge/development/ecr/minotari-console-wallet",
-    "MinotariWalletImageTag": "v2.1.1-pre.0_20250509_3218cf7",
-    "ViewPrivateKey": "a727a225f8c8ffb6eee00e636d046e4dc9c615b480df449c7ec1d91709b1150c",
-    "SpendKey": "62cbd055cbd4137e39754b33ca6e1a1f909224217656e1b814ac87b83a96d975",
+    "MinotariWalletImageTag": "v4.0.0-pre.0_20250526_8a6f229",
+    "ColdWalletSecret": "/wxtm-bridge/development/cold-wallet",
     "InstanceType": "t3.micro",
     "ProcessorImage": "/wxtm-bridge/development/ecr/wxtm-bridge-processor",
     "ProcessorImageTag": "0.0.48",
@@ -16,6 +15,9 @@
     "WxtmControllerAddress": "/wxtm-bridge/development/addresses/wxtm-controller",
     "KmsKeyId": "/wxtm-bridge/development/kms-key/proposer/id",
     "EthRpcUrl": "https://eth-sepolia.g.alchemy.com/v2/NU_ExF56-B4IH893K38on",
-    "OperationMode": "proposer"
+    "M2MTokenSecret": "/wxtm-bridge/development/m2m-token",
+    "OperationMode": "proposer",
+    "TaskCpu": "512",
+    "TaskMemory": "512"
   }
 }
