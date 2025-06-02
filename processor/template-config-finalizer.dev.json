@@ -11,6 +11,7 @@
     "ProcessorImageTag": "0.0.50",
     "BackendUrl": "/wxtm-bridge/development/urls/backend",
     "MintLowSafeAddress": "/wxtm-bridge/development/addresses/mint-low-safe",
+    "MintHighSafeAddress": "/wxtm-bridge/development/addresses/mint-high-safe",
     "WxtmAddress": "/wxtm-bridge/development/addresses/wxtm",
     "WxtmControllerAddress": "/wxtm-bridge/development/addresses/wxtm-controller",
     "KmsKeyId": "/wxtm-bridge/development/kms-key/finalizer/id",

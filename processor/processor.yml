@@ -40,6 +40,8 @@ Parameters:
     Type: AWS::SSM::Parameter::Value<String>
   MintLowSafeAddress:
     Type: AWS::SSM::Parameter::Value<String>
+  MintHighSafeAddress:
+    Type: AWS::SSM::Parameter::Value<String>
   WxtmAddress:
     Type: AWS::SSM::Parameter::Value<String>
   WxtmControllerAddress:
@@ -416,6 +418,8 @@ Resources:
               Value: !Ref BackendUrl
             - Name: MINT_LOW_SAFE_ADDRESS
               Value: !Ref MintLowSafeAddress
+            - Name: MINT_HIGH_SAFE_ADDRESS
+              Value: !Ref MintHighSafeAddress
             - Name: WXTM_ADDRESS
               Value: !Ref WxtmAddress
             - Name: WXTM_CONTROLLER_ADDRESS
