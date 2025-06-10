@@ -208,7 +208,7 @@ Resources:
     Properties:
       Tracing: Active
       CodeUri: ./wxtm-bridge-notifications.zip
-      Handler: out/timeout/notifications.handler
+      Handler: out/notifications/notifications.handler
       AutoPublishAlias: NotificationsHandler
 
       Events:
