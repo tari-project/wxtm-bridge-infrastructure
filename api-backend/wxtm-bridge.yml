@@ -197,6 +197,37 @@ Resources:
       DeploymentPreference:
         Type: AllAtOnce
 
+  NotificationsTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: !Sub "${Environment}-notifications"
+      DisplayName: !Sub "${Environment} notifications"
+
+  NotificationsHandler:
+    Type: AWS::Serverless::Function
+    Properties:
+      Tracing: Active
+      CodeUri: ./wxtm-bridge-notifications.zip
+      Handler: out/timeout/notifications.handler
+      AutoPublishAlias: NotificationsHandler
+
+      Events:
+        SNSEvent:
+          Type: SNS
+          Properties:
+            Topic: !Ref NotificationsTopic
+
+      Policies:
+        - Statement:
+            - Action:
+                - secretsmanager:GetSecretValue
+              Effect: Allow
+              Resource:
+                - !Sub arn:aws:secretsmanager:*:*:secret:/wxtm-bridge/${Environment}/*
+
+      DeploymentPreference:
+        Type: AllAtOnce
+
   BackendUrlParameter:
     Type: AWS::SSM::Parameter
     Properties:
