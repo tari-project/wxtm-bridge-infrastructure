@@ -52,6 +52,7 @@ Globals:
       SubnetIds: !Split [",", !Ref Subnets]
     Environment:
       Variables:
+        REGION: !Ref AWS::Region
         ENVIRONMENT: !Ref Environment
         DATABASE_HOST: !Ref DbHost
         DATABASE_PORT: "5432"
@@ -71,6 +72,7 @@ Globals:
         SUBGRAPH_URL: !Ref SubgraphUrl
         COLD_WALLET_ADDRESS: !Sub "{{resolve:secretsmanager:${ColdWalletSecret}:SecretString:OneSidedAddress}}"
         M2M_AUTH_TOKEN: !Sub "{{resolve:secretsmanager:${M2MTokenSecret}:SecretString:token}}"
+        NOTIFICATIONS_TOPIC_ARN: !Ref NotificationsTopic
 
 Resources:
   Api:
