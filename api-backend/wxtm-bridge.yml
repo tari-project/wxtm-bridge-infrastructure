@@ -72,6 +72,7 @@ Globals:
         COLD_WALLET_ADDRESS: !Sub "{{resolve:secretsmanager:${ColdWalletSecret}:SecretString:OneSidedAddress}}"
         M2M_AUTH_TOKEN: !Sub "{{resolve:secretsmanager:${M2MTokenSecret}:SecretString:token}}"
         NOTIFICATIONS_TOPIC_ARN: !Ref NotificationsTopic
+        DOMAIN: !Ref Domain
 
 Resources:
   Api:
