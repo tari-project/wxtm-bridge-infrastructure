@@ -52,7 +52,6 @@ Globals:
       SubnetIds: !Split [",", !Ref Subnets]
     Environment:
       Variables:
-        REGION: !Ref AWS::Region
         ENVIRONMENT: !Ref Environment
         DATABASE_HOST: !Ref DbHost
         DATABASE_PORT: "5432"
@@ -115,6 +114,10 @@ Resources:
                 - events:PutEvents
               Effect: "Allow"
               Resource: "*"
+            - Action:
+                - sns:Publish
+              Effect: "Allow"
+              Resource: !Ref NotificationsTopic
 
       DeploymentPreference:
         Type: AllAtOnce
