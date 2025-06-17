@@ -1,6 +1,6 @@
-AWSTemplateFormatVersion: '2010-09-09'
+AWSTemplateFormatVersion: "2010-09-09"
 
-Description: 'Template used to create S3 bucket that can be used to export logs from CloudWatch'
+Description: "Template used to create S3 bucket that can be used to export logs from CloudWatch"
 
 Parameters:
   LogsExportBucketName:
@@ -21,27 +21,21 @@ Resources:
       PolicyDocument:
         Version: "2012-10-17"
         Statement:
-          -
-            Action: s3:GetBucketAcl
+          - Action: s3:GetBucketAcl
             Effect: Allow
-            Resource:
-              !Join
-                - ""
-                -
-                  - "arn:aws:s3:::"
-                  - !Ref LogsExportBucket
+            Resource: !Join
+              - ""
+              - - "arn:aws:s3:::"
+                - !Ref LogsExportBucket
             Principal:
               Service: !Sub logs.${AWS::Region}.amazonaws.com
-          -
-            Action: s3:PutObject
+          - Action: s3:PutObject
             Effect: Allow
-            Resource:
-              !Join
-                - ""
-                -
-                  - "arn:aws:s3:::"
-                  - !Ref LogsExportBucket
-                  - "/*"
+            Resource: !Join
+              - ""
+              - - "arn:aws:s3:::"
+                - !Ref LogsExportBucket
+                - "/*"
             Principal:
               Service: !Sub logs.${AWS::Region}.amazonaws.com
 
