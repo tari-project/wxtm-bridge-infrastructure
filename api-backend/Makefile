@@ -67,5 +67,6 @@ deploy-dev: upload-dev
 deploy-prod: upload-prod
 	sam deploy --template-file $(TEMPLATE_FILE) --stack-name $(PROD_STACK_NAME) --capabilities $(CAPABILITIES)  --region $(PROD_REGION) --parameter-overrides $(PROD_PARAMETERS)
 
-
-
+deploy-prod-backend-log-export:
+	@../scripts/is_correct_aws_account.sh prod-backend
+	sam deploy --template-file log-export.yml --stack-name $(PROD_STACK_NAME)-log-export --capabilities $(CAPABILITIES)  --region $(PROD_REGION) --parameter-overrides LogsExportBucketName=log-export.backend.bridge.tari.com

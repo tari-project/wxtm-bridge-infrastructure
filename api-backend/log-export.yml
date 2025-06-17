@@ -1,0 +1,47 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Description: "Template used to create S3 bucket that can be used to export logs from CloudWatch"
+
+Parameters:
+  LogsExportBucketName:
+    Description: Name of S3 bucket used for storing backups
+    Type: String
+    Default: logs-export-bucket
+
+Resources:
+  LogsExportBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Ref LogsExportBucketName
+
+  LogsExportBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref LogsExportBucket
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Action: s3:GetBucketAcl
+            Effect: Allow
+            Resource: !Join
+              - ""
+              - - "arn:aws:s3:::"
+                - !Ref LogsExportBucket
+            Principal:
+              Service: !Sub logs.${AWS::Region}.amazonaws.com
+          - Action: s3:PutObject
+            Effect: Allow
+            Resource: !Join
+              - ""
+              - - "arn:aws:s3:::"
+                - !Ref LogsExportBucket
+                - "/*"
+            Principal:
+              Service: !Sub logs.${AWS::Region}.amazonaws.com
+
+Outputs:
+  LogsExportBucketName:
+    Description: Created bucket name
+    Value: !Ref LogsExportBucketName
+    Export:
+      Name: !Sub ${AWS::StackName}-LogsExportBucketName
