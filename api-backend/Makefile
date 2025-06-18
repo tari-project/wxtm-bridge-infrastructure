@@ -36,7 +36,7 @@ copy-s3-zip-files-prod:
 	 aws s3 cp s3://$(PROD_ARTIFACTS_BUCKET_NAME)/prod/wxtm-bridge/wxtm-bridge-migrations.zip .
 	 aws s3 cp s3://$(PROD_ARTIFACTS_BUCKET_NAME)/prod/wxtm-bridge/wxtm-bridge-subgraph.zip .
 	 aws s3 cp s3://$(PROD_ARTIFACTS_BUCKET_NAME)/prod/wxtm-bridge/wxtm-bridge-timeout.zip .
-	 aws s3 cp s3://$(PROD_ARTIFACTS_BUCKET_NAME)/dev/wxtm-bridge/wxtm-bridge-notifications.zip .
+	 aws s3 cp s3://$(PROD_ARTIFACTS_BUCKET_NAME)/prod/wxtm-bridge/wxtm-bridge-notifications.zip .
 
 
 build-dev: copy-s3-zip-files-dev
