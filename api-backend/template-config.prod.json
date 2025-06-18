@@ -13,7 +13,7 @@
     "StaticCloudFrontHostedZoneId": "Z2FDTNDATAQYW2",
     "Domain": "bridge.tari.com",
     "DBName": "wxtmBridgeProd",
-    "DBInstanceClass": "db.t3.micro",
+    "DBInstanceClass": "db.t3.small",
     "DBAllocatedStorage": 10,
     "Auth0Domain": "dev-ewh773vqsv55axxk.us.auth0.com",
     "Auth0Audience": "https://api.bridge.tari.com/",
