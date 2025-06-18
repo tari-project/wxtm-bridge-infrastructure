@@ -75,6 +75,31 @@ Globals:
         DOMAIN: !Ref Domain
 
 Resources:
+  ApiLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/apigateway/${AWS::StackName}-${Environment}-api-access-logs"
+      RetentionInDays: 30
+
+  ApiGatewayCloudWatchRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - apigateway.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs
+
+  ApiGatewayAccount:
+    Type: AWS::ApiGateway::Account
+    Properties:
+      CloudWatchRoleArn: !GetAtt ApiGatewayCloudWatchRole.Arn
+
   Api:
     Type: AWS::Serverless::Api
     Properties:
@@ -82,6 +107,16 @@ Resources:
       MethodSettings:
         - ResourcePath: "/*"
           HttpMethod: "*"
+          LoggingLevel: INFO
+          DataTraceEnabled: true
+          MetricsEnabled: true
+      AccessLogSetting:
+        DestinationArn: !GetAtt ApiLogGroup.Arn
+        Format: >
+          $context.requestId $context.identity.sourceIp $context.identity.caller
+          $context.identity.user [$context.requestTime] "$context.httpMethod $context.resourcePath $context.protocol"
+          $context.status $context.error.message $context.error.messageString $context.responseLength $context.requestTime
+          $context.extendedRequestId $context.wafResponseCode
       Domain:
         CertificateArn: !Ref CertificateArn
         DomainName: !Sub api.${Domain}
