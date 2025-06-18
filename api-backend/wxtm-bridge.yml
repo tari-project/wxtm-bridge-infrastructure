@@ -85,7 +85,7 @@ Resources:
     Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
-        Version: '2012-10-17'
+        Version: "2012-10-17"
         Statement:
           - Effect: Allow
             Principal:
@@ -102,6 +102,8 @@ Resources:
 
   Api:
     Type: AWS::Serverless::Api
+    DependsOn:
+      - ApiGatewayAccount
     Properties:
       StageName: !Ref Environment
       MethodSettings:
@@ -114,7 +116,7 @@ Resources:
         DestinationArn: !GetAtt ApiLogGroup.Arn
         Format: >
           $context.requestId $context.identity.sourceIp $context.identity.caller
-          $context.identity.user [$context.requestTime] "$context.httpMethod $context.resourcePath $context.protocol"
+          $context.identity.user [$context.requestTime] "$context.httpMethod $context.path $context.protocol"
           $context.status $context.error.message $context.error.messageString $context.responseLength $context.requestTime
           $context.extendedRequestId $context.wafResponseCode
       Domain:
