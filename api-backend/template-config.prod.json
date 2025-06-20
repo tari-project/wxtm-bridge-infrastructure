@@ -21,6 +21,7 @@
     "SubgraphSheduleUnit": "minutes",
     "SubgraphUrl": "https://subgraph.satsuma-prod.com/e371ce443780/yat/wxtm-dev/api",
     "ColdWalletSecret": "/wxtm-bridge/production/cold-wallet",
+    "SlackWebhookSecret": "/wxtm-bridge/production/slack-webhook",
     "M2MTokenSecret": "/wxtm-bridge/production/m2m-token",
     "BastionKeyName": "ProdBastion",
     "TransactionTimeoutScheduleValue": 15,
