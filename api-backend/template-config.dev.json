@@ -22,6 +22,7 @@
     "SubgraphUrl": "https://api.studio.thegraph.com/query/109825/wxtm-bridge/version/latest",
     "ColdWalletSecret": "/wxtm-bridge/development/cold-wallet",
     "M2MTokenSecret": "/wxtm-bridge/development/m2m-token",
+    "SlackWebhookSecret": "/wxtm-bridge/development/slack-webhook",
     "BastionKeyName": "DevBastion",
     "TransactionTimeoutScheduleValue": 15,
     "TransactionTimeoutScheduleUnit": "minutes"

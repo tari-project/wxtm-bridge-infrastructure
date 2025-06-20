@@ -40,6 +40,8 @@ Parameters:
     Type: Number
   TransactionTimeoutScheduleUnit:
     Type: String
+  SlackWebhookSecret:
+    Type: String
 
 Globals:
   Function:
@@ -73,6 +75,7 @@ Globals:
         M2M_AUTH_TOKEN: !Sub "{{resolve:secretsmanager:${M2MTokenSecret}:SecretString:token}}"
         NOTIFICATIONS_TOPIC_ARN: !Ref NotificationsTopic
         DOMAIN: !Ref Domain
+        SLACK_WEBHOOK_URL: !Sub "{{resolve:secretsmanager:${SlackWebhookSecret}:SecretString:url}}"
 
 Resources:
   ApiLogGroup:
