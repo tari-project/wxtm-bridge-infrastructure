@@ -49,12 +49,14 @@ Parameters:
   KmsKeyId:
     Type: AWS::SSM::Parameter::Value<String>
   EthRpcUrl:
-    Type: String
+    Type: AWS::SSM::Parameter::Value<String>
   OperationMode:
     Type: String
     AllowedValues:
       - proposer
       - finalizer
+  SentryDsn:
+    Type: AWS::SSM::Parameter::Value<String>
 
 Mappings:
   EC2InstanceConnectMap:
@@ -436,6 +438,8 @@ Resources:
               Value: !Ref ErrorsTopic
             - Name: M2M_AUTH_TOKEN
               Value: !Sub "{{resolve:secretsmanager:${M2MTokenSecret}:SecretString:token}}"
+            - Name: SENTRY_DSN
+              Value: !Ref SentryDsn
 
       Volumes:
         - Name: !Sub wallet-data-${OperationMode}
