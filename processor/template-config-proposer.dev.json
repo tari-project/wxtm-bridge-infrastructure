@@ -8,7 +8,7 @@
     "ColdWalletSecret": "/wxtm-bridge/development/cold-wallet",
     "InstanceType": "t3.micro",
     "ProcessorImage": "/wxtm-bridge/development/ecr/wxtm-bridge-processor",
-    "ProcessorImageTag": "0.0.61",
+    "ProcessorImageTag": "0.0.62",
     "BackendUrl": "/wxtm-bridge/development/urls/backend",
     "MintLowSafeAddress": "/wxtm-bridge/development/addresses/mint-low-safe",
     "MintHighSafeAddress": "/wxtm-bridge/development/addresses/mint-high-safe",
@@ -18,6 +18,7 @@
     "KmsKeyId": "/wxtm-bridge/development/kms-key/proposer/id",
     "EthRpcUrl": "/wxtm-bridge/development/addresses/eth-rpc-url",
     "M2MTokenSecret": "/wxtm-bridge/development/m2m-token",
+    "SentryDsn": "/wxtm-bridge/development/sentry/dsn",
     "OperationMode": "proposer",
     "TaskCpu": "512",
     "TaskMemory": "512"
