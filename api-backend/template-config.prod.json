@@ -23,6 +23,7 @@
     "ColdWalletSecret": "/wxtm-bridge/production/cold-wallet",
     "SlackWebhookSecret": "/wxtm-bridge/production/slack-webhook",
     "M2MTokenSecret": "/wxtm-bridge/production/m2m-token",
+    "SentryDsn": "/wxtm-bridge/production/sentry/dsn",
     "BastionKeyName": "ProdBastion",
     "TransactionTimeoutScheduleValue": 15,
     "TransactionTimeoutScheduleUnit": "minutes"
