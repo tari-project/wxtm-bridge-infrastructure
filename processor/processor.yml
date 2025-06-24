@@ -49,7 +49,7 @@ Parameters:
   KmsKeyId:
     Type: AWS::SSM::Parameter::Value<String>
   EthRpcUrl:
-    Type: String
+    Type: AWS::SSM::Parameter::Value<String>
   OperationMode:
     Type: String
     AllowedValues:
