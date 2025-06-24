@@ -53,6 +53,8 @@ Parameters:
     Type: String
   SlackWebhookSecret:
     Type: String
+  SentryDsn:
+    Type: AWS::SSM::Parameter::Value<String>
 
 Conditions:
   ShouldRunBastion: !Not [!Equals [!Ref BastionKeyName, ""]]
@@ -125,6 +127,7 @@ Resources:
         TransactionTimeoutScheduleValue: !Ref TransactionTimeoutScheduleValue
         TransactionTimeoutScheduleUnit: !Ref TransactionTimeoutScheduleUnit
         SlackWebhookSecret: !Ref SlackWebhookSecret
+        SentryDsn: !Ref SentryDsn
 
   Functions:
     Type: AWS::Serverless::Application
