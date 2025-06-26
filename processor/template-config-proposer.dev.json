@@ -8,7 +8,7 @@
     "ColdWalletSecret": "/wxtm-bridge/development/cold-wallet",
     "InstanceType": "t3.micro",
     "ProcessorImage": "/wxtm-bridge/development/ecr/wxtm-bridge-processor",
-    "ProcessorImageTag": "0.0.63",
+    "ProcessorImageTag": "0.0.66",
     "BackendUrl": "/wxtm-bridge/development/urls/backend",
     "MintLowSafeAddress": "/wxtm-bridge/development/addresses/mint-low-safe",
     "MintHighSafeAddress": "/wxtm-bridge/development/addresses/mint-high-safe",
