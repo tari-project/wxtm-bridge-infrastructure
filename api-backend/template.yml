@@ -59,6 +59,7 @@ Parameters:
 Conditions:
   ShouldRunBastion: !Not [!Equals [!Ref BastionKeyName, ""]]
   ShouldAddLambdaAtEdge: !Equals [!Ref Environment, "development"]
+  ShouldCreateMultisigInfrastructure: !Equals [!Ref Environment, "development"]
 
 Resources:
   PrivateSubnets:
@@ -150,3 +151,15 @@ Resources:
             !GetAtt Functions.Outputs.RestrictAndRedirectFunctionArn,
             "",
           ]
+
+  MultisigInfrastructure:
+    Type: AWS::Serverless::Application
+    Condition: ShouldCreateMultisigInfrastructure
+    Properties:
+      Location: ./multisig-infrastructure.yml
+      Parameters:
+        Environment: !Ref Environment
+        LambdaSecurityGroupId: !Ref LambdaSecurityGroup
+        PrivateSubnetsIds: !GetAtt PrivateSubnets.Outputs.PrivateSubnets
+        DbSecretArn: !GetAtt WXTMBridgeDatabase.Outputs.PostgresSecrets
+        DbHost: !GetAtt WXTMBridgeDatabase.Outputs.PostgresEndpointAddress
