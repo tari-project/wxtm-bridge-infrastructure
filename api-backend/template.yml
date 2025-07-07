@@ -163,3 +163,4 @@ Resources:
         PrivateSubnetsIds: !GetAtt PrivateSubnets.Outputs.PrivateSubnets
         DbSecretArn: !GetAtt WXTMBridgeDatabase.Outputs.PostgresSecrets
         DbHost: !GetAtt WXTMBridgeDatabase.Outputs.PostgresEndpointAddress
+        CertificateArn: !Ref CertificateArn
