@@ -12,13 +12,14 @@ Parameters:
     Type: String
   DbHost:
     Type: String
-    Description: Database host endpoint
+  CertificateArn:
+    Type: String
 
 Resources:
   LambdaSecurityGroupParameter:
     Type: AWS::SSM::Parameter
     Properties:
-      Name: !Sub /wxtm-bridge/${Environment}/security-group/lambda
+      Name: !Sub /multisig/${Environment}/security-group/lambda
       Type: String
       Value: !Ref LambdaSecurityGroupId
       Description: Security group ID for Lambda functions
@@ -26,7 +27,7 @@ Resources:
   PrivateSubnetsParameter:
     Type: AWS::SSM::Parameter
     Properties:
-      Name: !Sub /wxtm-bridge/${Environment}/vpc/private-subnets
+      Name: !Sub /multisig/${Environment}/vpc/private-subnets
       Type: String
       Value: !Ref PrivateSubnetsIds
       Description: Comma-separated list of private subnet IDs
@@ -34,7 +35,7 @@ Resources:
   DbSecretParameter:
     Type: AWS::SSM::Parameter
     Properties:
-      Name: !Sub /wxtm-bridge/${Environment}/database/secret-arn
+      Name: !Sub /multisig/${Environment}/database/secret-arn
       Type: String
       Value: !Ref DbSecretArn
       Description: ARN of the database secrets in Secrets Manager
@@ -42,7 +43,15 @@ Resources:
   DbHostParameter:
     Type: AWS::SSM::Parameter
     Properties:
-      Name: !Sub /wxtm-bridge/${Environment}/database/host
+      Name: !Sub /multisig/${Environment}/database/host
       Type: String
       Value: !Ref DbHost
       Description: Database host endpoint
+
+  CertificateArnParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub /multisig/${Environment}/certificate-arn
+      Type: String
+      Value: !Ref CertificateArn
+      Description: ARN of the SSL certificate
