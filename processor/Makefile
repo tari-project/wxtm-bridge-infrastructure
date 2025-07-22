@@ -51,6 +51,10 @@ deploy-prod-proposer:
 	@../scripts/is_correct_aws_account.sh prod-proposer
 	sam deploy --template-file processor.yml --stack-name $(PROD_PROPOSER_STACK_NAME)-processor --capabilities $(CAPABILITIES)  --region $(PROD_PROPOSER_REGION) --parameter-overrides $(PROD_PROPOSER_PARAMETERS)
 
+deploy-dev-log-export:
+	@../scripts/is_correct_aws_account.sh dev
+	sam deploy --template-file log-export.yml --stack-name $(DEV_STACK_NAME)-log-export --capabilities $(CAPABILITIES)  --region $(DEV_REGION) --parameter-overrides LogsExportBucketName=log-export.bridge.tari.com
+
 deploy-prod-proposer-log-export:
 	@../scripts/is_correct_aws_account.sh prod-proposer
 	sam deploy --template-file log-export.yml --stack-name $(PROD_PROPOSER_STACK_NAME)-log-export --capabilities $(CAPABILITIES)  --region $(PROD_PROPOSER_REGION) --parameter-overrides LogsExportBucketName=log-export.proposer.bridge.tari.com
