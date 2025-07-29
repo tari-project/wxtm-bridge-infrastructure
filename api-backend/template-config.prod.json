@@ -26,6 +26,8 @@
     "SentryDsn": "/wxtm-bridge/production/sentry/dsn",
     "BastionKeyName": "ProdBastion",
     "TransactionTimeoutScheduleValue": 15,
-    "TransactionTimeoutScheduleUnit": "minutes"
+    "TransactionTimeoutScheduleUnit": "minutes",
+    "MineToExchangeAddressPrefix": "eth-mainnet",
+    "MineToExchangeWalletAddress": "/wxtm-bridge/production/addresses/mine-to-exchange-wallet"
   }
 }

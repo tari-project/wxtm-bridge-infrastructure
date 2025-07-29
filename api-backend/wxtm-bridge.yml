@@ -44,6 +44,10 @@ Parameters:
     Type: String
   SentryDsn:
     Type: String
+  MineToExchangeAddressPrefix:
+    Type: String
+  MineToExchangeWalletAddress:
+    Type: String
 
 Globals:
   Function:
@@ -79,6 +83,8 @@ Globals:
         DOMAIN: !Ref Domain
         SLACK_WEBHOOK_URL: !Sub "{{resolve:secretsmanager:${SlackWebhookSecret}:SecretString:url}}"
         SENTRY_DSN: !Ref SentryDsn
+        MINE_TO_EXCHANGE_ADDRESS_PREFIX: !Ref MineToExchangeAddressPrefix
+        MINE_TO_EXCHANGE_WALLET_ADDRESS: !Ref MineToExchangeWalletAddress
 
 Resources:
   ApiLogGroup:
