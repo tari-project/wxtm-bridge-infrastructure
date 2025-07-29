@@ -14,6 +14,7 @@
     "MintHighSafeAddress": "/wxtm-bridge/production/addresses/mint-high-safe",
     "WxtmAddress": "/wxtm-bridge/production/addresses/wxtm",
     "WxtmControllerAddress": "/wxtm-bridge/production/addresses/wxtm-controller",
+    "MultiSendSafeAddress": "/wxtm-bridge/production/addresses/multi-send-safe",
     "KmsKeyId": "/wxtm-bridge/production/kms-key/finalizer/id",
     "EthRpcUrl": "/wxtm-bridge/production/addresses/eth-rpc-url",
     "M2MTokenSecret": "/wxtm-bridge/production/m2m-token",
