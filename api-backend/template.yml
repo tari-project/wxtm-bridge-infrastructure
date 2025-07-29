@@ -55,6 +55,10 @@ Parameters:
     Type: String
   SentryDsn:
     Type: AWS::SSM::Parameter::Value<String>
+  MineToExchangeAddressPrefix:
+    Type: String
+  MineToExchangeWalletAddress:
+    Type: AWS::SSM::Parameter::Value<String>
 
 Conditions:
   ShouldRunBastion: !Not [!Equals [!Ref BastionKeyName, ""]]
@@ -129,6 +133,8 @@ Resources:
         TransactionTimeoutScheduleUnit: !Ref TransactionTimeoutScheduleUnit
         SlackWebhookSecret: !Ref SlackWebhookSecret
         SentryDsn: !Ref SentryDsn
+        MineToExchangeAddressPrefix: !Ref MineToExchangeAddressPrefix
+        MineToExchangeWalletAddress: !Ref MineToExchangeWalletAddress
 
   Functions:
     Type: AWS::Serverless::Application

@@ -26,6 +26,8 @@
     "SentryDsn": "/wxtm-bridge/development/sentry/dsn",
     "BastionKeyName": "DevBastion",
     "TransactionTimeoutScheduleValue": 15,
-    "TransactionTimeoutScheduleUnit": "minutes"
+    "TransactionTimeoutScheduleUnit": "minutes",
+    "MineToExchangeAddressPrefix": "sepolia",
+    "MineToExchangeWalletAddress": "/wxtm-bridge/development/addresses/mine-to-exchange-wallet"
   }
 }
