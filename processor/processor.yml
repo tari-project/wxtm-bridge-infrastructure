@@ -500,6 +500,8 @@ Resources:
               Value: !Ref Environment
             - Name: MINOTARI_WALLET_HOST
               Value: minotari-console-wallet
+            - Name: MINING_WALLET_HOST
+              Value: mining-console-wallet
             - Name: WXTM_BRIDGE_BACKEND_URL
               Value: !Ref BackendUrl
             - Name: MINT_LOW_SAFE_ADDRESS
