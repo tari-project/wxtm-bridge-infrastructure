@@ -471,11 +471,11 @@ Resources:
             - --grpc-address /ip4/0.0.0.0/tcp/44872
             - --non-interactive-mode
           Environment:
-            - Name: MINING_WALLET_PASSWORD
+            - Name: MINOTARI_WALLET_PASSWORD
               Value: Wahron6rayyx
-            - Name: MINING_WALLET_VIEW_PRIVATE_KEY
+            - Name: MINOTARI_WALLET_VIEW_PRIVATE_KEY
               Value: !Sub "{{resolve:secretsmanager:${MiningWalletSecret}:SecretString:PrivateViewKey}}"
-            - Name: MINING_WALLET_SPEND_KEY
+            - Name: MINOTARI_WALLET_SPEND_KEY
               Value: !Sub "{{resolve:secretsmanager:${MiningWalletSecret}:SecretString:SpendKey}}"
           MountPoints:
             - ContainerPath: /var/tari/wallet
