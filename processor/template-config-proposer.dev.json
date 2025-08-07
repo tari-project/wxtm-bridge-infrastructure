@@ -11,7 +11,7 @@
     "MiningWalletSecret": "/wxtm-bridge/development/mining-wallet",
     "InstanceType": "t3.micro",
     "ProcessorImage": "/wxtm-bridge/development/ecr/wxtm-bridge-processor",
-    "ProcessorImageTag": "0.0.88",
+    "ProcessorImageTag": "0.0.89",
     "BackendUrl": "/wxtm-bridge/development/urls/backend",
     "MintLowSafeAddress": "/wxtm-bridge/development/addresses/mint-low-safe",
     "MintHighSafeAddress": "/wxtm-bridge/development/addresses/mint-high-safe",
