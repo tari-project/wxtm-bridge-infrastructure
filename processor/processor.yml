@@ -54,6 +54,8 @@ Parameters:
     Type: AWS::SSM::Parameter::Value<String>
   WxtmControllerAddress:
     Type: AWS::SSM::Parameter::Value<String>
+  WxtmBridgeAddress:
+    Type: AWS::SSM::Parameter::Value<String>
   KmsKeyId:
     Type: AWS::SSM::Parameter::Value<String>
   EthRpcUrl:
@@ -514,6 +516,8 @@ Resources:
               Value: !Ref WxtmAddress
             - Name: WXTM_CONTROLLER_ADDRESS
               Value: !Ref WxtmControllerAddress
+            - Name: WXTM_BRIDGE_ADDRESS
+              Value: !Ref WxtmBridgeAddress
             - Name: KMS_KEY_ID
               Value: !Ref KmsKeyId
             - Name: ETH_RPC_URL
