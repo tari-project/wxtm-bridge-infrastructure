@@ -21,6 +21,7 @@
     "WxtmBridgeAddress": "/wxtm-bridge/production/addresses/wxtm-bridge",
     "KmsKeyId": "/wxtm-bridge/production/kms-key/finalizer/id",
     "EthRpcUrl": "/wxtm-bridge/production/addresses/eth-rpc-url",
+    "EthRpcUrlSecondary": "/wxtm-bridge/production/addresses/eth-rpc-url-secondary",
     "M2MTokenSecret": "/wxtm-bridge/production/m2m-token",
     "SentryDsn": "/wxtm-bridge/production/sentry/dsn",
     "OperationMode": "finalizer",
