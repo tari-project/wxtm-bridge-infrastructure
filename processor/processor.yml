@@ -60,6 +60,8 @@ Parameters:
     Type: AWS::SSM::Parameter::Value<String>
   EthRpcUrl:
     Type: AWS::SSM::Parameter::Value<String>
+  EthRpcUrlSecondary:
+    Type: AWS::SSM::Parameter::Value<String>
   OperationMode:
     Type: String
     AllowedValues:
@@ -522,6 +524,8 @@ Resources:
               Value: !Ref KmsKeyId
             - Name: ETH_RPC_URL
               Value: !Ref EthRpcUrl
+            - Name: ETH_RPC_URL_SECONDARY
+              Value: !Ref EthRpcUrlSecondary
             - Name: OPERATION_MODE
               Value: !Ref OperationMode
             - Name: AWS_REGION
