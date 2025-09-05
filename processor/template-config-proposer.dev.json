@@ -11,7 +11,6 @@
     "PaymentWalletImageTag": "v5.0.0-pre.8",
     "ColdWalletSecret": "/wxtm-bridge/development/cold-wallet",
     "MiningWalletSecret": "/wxtm-bridge/development/mining-wallet",
-    "PaymentWalletSecret": "/wxtm-bridge/development/payment-wallet",
     "InstanceType": "t3.micro",
     "ProcessorImage": "/wxtm-bridge/development/ecr/wxtm-bridge-processor",
     "ProcessorImageTag": "0.0.98",
