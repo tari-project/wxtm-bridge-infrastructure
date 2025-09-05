@@ -17,6 +17,10 @@ Parameters:
     Type: AWS::SSM::Parameter::Value<String>
   MiningWalletImageTag:
     Type: String
+  PaymentWalletImage:
+    Type: AWS::SSM::Parameter::Value<String>
+  PaymentWalletImageTag:
+    Type: String
   ColdWalletSecret:
     Type: String
   MiningWalletSecret:
@@ -194,6 +198,19 @@ Resources:
         - Key: Name
           Value: !Sub mining-wallet-${OperationMode}
 
+  PaymentWalletDataVolume:
+    Type: AWS::EC2::Volume
+    Properties:
+      AvailabilityZone: !Select
+        - 0
+        - Fn::GetAZs: !Ref "AWS::Region"
+      Size: 2
+      VolumeType: gp3
+      Encrypted: true
+      Tags:
+        - Key: Name
+          Value: !Sub payment-wallet-${OperationMode}
+
   ECSInstanceProfile:
     Type: AWS::IAM::InstanceProfile
     Properties:
@@ -250,6 +267,8 @@ Resources:
               command: bash -x /home/ec2-user/mount-ebs
             03_mount_mining_ebs:
               command: bash -x /home/ec2-user/mount-mining-ebs
+            04_mount_payment_ebs:
+              command: bash -x /home/ec2-user/mount-payment-ebs
           services:
             sysvinit:
               cfn-hup:
@@ -324,6 +343,36 @@ Resources:
                 chown ec2-user:ec2-user $MOUNT_POINT
               context:
                 VolumeId: !GetAtt MiningWalletDataVolume.VolumeId
+                Region: !Ref AWS::Region
+            "/home/ec2-user/mount-payment-ebs":
+              mode: "000400"
+              owner: ec2-user
+              group: ec2-user
+              content: !Sub |
+                cd /home/ec2-user
+                INSTANCE_ID=`curl http://169.254.169.254/latest/meta-data/instance-id`
+                aws ec2 attach-volume --volume-id {{VolumeId}} --instance-id $INSTANCE_ID --device /dev/sdh --region {{Region}}
+                DEVICE="/dev/nvme3n1"
+                MOUNT_POINT="/home/ec2-user/payment-wallet-data"
+                while [ ! -e $DEVICE ]; do sleep 1; done  # Wait for NVMe mapping
+
+                FS_TYPE=ext4
+
+                # Check for existing file system
+                EXISTING_FS=$(sudo blkid -o value -s TYPE "$DEVICE" || true)
+
+                if [ -z "$EXISTING_FS" ]; then
+                  echo "No file system detected. Creating $FS_TYPE on $DEVICE"
+                  mkfs -t "$FS_TYPE" "$DEVICE"
+                else
+                  echo "Existing $EXISTING_FS file system found. Skipping formatting."
+                fi
+
+                mkdir -p $MOUNT_POINT
+                mount $DEVICE $MOUNT_POINT
+                chown ec2-user:ec2-user $MOUNT_POINT
+              context:
+                VolumeId: !GetAtt PaymentWalletDataVolume.VolumeId
                 Region: !Ref AWS::Region
             "/etc/cfn/cfn-hup.conf":
               mode: "000400"
@@ -488,11 +537,38 @@ Resources:
             - ContainerPort: 44872
               HostPort: 44872
               Protocol: tcp
+        - Image: !Sub ${PaymentWalletImage}:${PaymentWalletImageTag}
+          Name: payment-console-wallet
+          User: tari
+          LinuxParameters:
+            InitProcessEnabled: true
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Ref LogGroup
+              awslogs-region: !Ref AWS::Region
+              awslogs-stream-prefix: payment-console-wallet
+          Command:
+            - -p base_node.payment_enabled=false
+            - --grpc-enabled
+            - --grpc-address /ip4/0.0.0.0/tcp/44873
+            - --non-interactive-mode
+          Environment:
+            - Name: MINOTARI_WALLET_PASSWORD
+              Value: Handg8dothui
+          MountPoints:
+            - ContainerPath: /var/tari/wallet
+              SourceVolume: !Sub payment-wallet-data-${OperationMode}
+          PortMappings:
+            - ContainerPort: 44873
+              HostPort: 44873
+              Protocol: tcp
         - Image: !Sub ${ProcessorImage}:${ProcessorImageTag}
           Name: wxtm-bridge-processor
           Links:
             - minotari-console-wallet
             - mining-console-wallet
+            - payment-console-wallet
           LogConfiguration:
             LogDriver: awslogs
             Options:
@@ -506,6 +582,8 @@ Resources:
               Value: minotari-console-wallet
             - Name: MINING_WALLET_HOST
               Value: mining-console-wallet
+            - Name: PAYMENT_WALLET_HOST
+              Value: payment-console-wallet
             - Name: WXTM_BRIDGE_BACKEND_URL
               Value: !Ref BackendUrl
             - Name: MINT_LOW_SAFE_ADDRESS
@@ -544,6 +622,9 @@ Resources:
         - Name: !Sub mining-wallet-data-${OperationMode}
           Host:
             SourcePath: /home/ec2-user/mining-wallet-data
+        - Name: !Sub payment-wallet-data-${OperationMode}
+          Host:
+            SourcePath: /home/ec2-user/payment-wallet-data
   Service:
     Type: AWS::ECS::Service
     Properties:
