@@ -5,8 +5,6 @@
     "VpcId": "vpc-03987a53527922fb6",
     "MinotariWalletImage": "/wxtm-bridge/production/ecr/minotari-console-wallet",
     "MinotariWalletImageTag": "v4.6.0",
-    "MiningWalletImage": "/wxtm-bridge/production/ecr/mining-console-wallet",
-    "MiningWalletImageTag": "v4.6.0",
     "ColdWalletSecret": "/wxtm-bridge/production/cold-wallet",
     "MiningWalletSecret": "/wxtm-bridge/production/mining-wallet",
     "InstanceType": "t3.large",
