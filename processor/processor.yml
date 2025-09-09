@@ -13,10 +13,6 @@ Parameters:
     Type: AWS::SSM::Parameter::Value<String>
   MinotariWalletImageTag:
     Type: String
-  MiningWalletImage:
-    Type: AWS::SSM::Parameter::Value<String>
-  MiningWalletImageTag:
-    Type: String
   ColdWalletSecret:
     Type: String
   MiningWalletSecret:
@@ -454,7 +450,7 @@ Resources:
             - ContainerPort: 44871
               HostPort: 44871
               Protocol: tcp
-        - Image: !Sub ${MiningWalletImage}:${MiningWalletImageTag}
+        - Image: !Sub ${MinotariWalletImage}:${MinotariWalletImageTag}
           Name: mining-console-wallet
           User: tari
           LinuxParameters:
