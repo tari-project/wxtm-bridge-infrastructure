@@ -4,7 +4,7 @@
     "PublicSubnets": "subnet-03dd81ecd576dd2ae,subnet-00ec2071834812b9a,subnet-0cb9779ce9e3133a9",
     "VpcId": "vpc-0a4911a0b3fdeda78",
     "MinotariWalletImage": "/wxtm-bridge/production/ecr/minotari-console-wallet",
-    "MinotariWalletImageTag": "v5.0.1",
+    "MinotariWalletImageTag": "v4.6.0",
     "ColdWalletSecret": "/wxtm-bridge/production/cold-wallet",
     "MiningWalletSecret": "/wxtm-bridge/production/mining-wallet",
     "InstanceType": "t3.large",
