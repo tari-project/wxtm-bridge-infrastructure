@@ -17,6 +17,8 @@ Parameters:
     Type: String
   MiningWalletSecret:
     Type: String
+  PaymentWalletSecret:
+    Type: String
   InstanceType:
     Type: String
   TaskCpu:
@@ -492,6 +494,8 @@ Resources:
               Value: !Sub "{{resolve:secretsmanager:${ColdWalletSecret}:SecretString:PrivateViewKey}}"
             - Name: MINOTARI_WALLET_SPEND_KEY
               Value: !Sub "{{resolve:secretsmanager:${ColdWalletSecret}:SecretString:SpendKey}}"
+            - Name: MINOTARI_WALLET_SEED_WORDS
+              Value: !Sub "{{resolve:secretsmanager:${PaymentWalletSecret}:SecretString:SeedWords}}"
           MountPoints:
             - ContainerPath: /var/tari/wallet
               SourceVolume: !Sub wallet-data-${OperationMode}
