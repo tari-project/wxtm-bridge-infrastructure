@@ -494,8 +494,6 @@ Resources:
               Value: !Sub "{{resolve:secretsmanager:${ColdWalletSecret}:SecretString:PrivateViewKey}}"
             - Name: MINOTARI_WALLET_SPEND_KEY
               Value: !Sub "{{resolve:secretsmanager:${ColdWalletSecret}:SecretString:SpendKey}}"
-            - Name: MINOTARI_WALLET_SEED_WORDS
-              Value: !Sub "{{resolve:secretsmanager:${PaymentWalletSecret}:SecretString:SeedWords}}"
           MountPoints:
             - ContainerPath: /var/tari/wallet
               SourceVolume: !Sub wallet-data-${OperationMode}
@@ -552,6 +550,8 @@ Resources:
           Environment:
             - Name: MINOTARI_WALLET_PASSWORD
               Value: Handg8dothui
+            - Name: MINOTARI_WALLET_SEED_WORDS
+              Value: !Sub "{{resolve:secretsmanager:${PaymentWalletSecret}:SecretString:SeedWords}}"
           MountPoints:
             - ContainerPath: /var/tari/wallet
               SourceVolume: !Sub payment-wallet-data-${OperationMode}
