@@ -550,8 +550,6 @@ Resources:
           Environment:
             - Name: MINOTARI_WALLET_PASSWORD
               Value: Handg8dothui
-            - Name: MINOTARI_WALLET_SEED_WORDS
-              Value: !Sub "{{resolve:secretsmanager:${PaymentWalletSecret}:SecretString:SeedWords}}"
           MountPoints:
             - ContainerPath: /var/tari/wallet
               SourceVolume: !Sub payment-wallet-data-${OperationMode}
